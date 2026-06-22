@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lender Detail — SeaMoney Funding Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Roboto", system-ui, sans-serif; background: #F5F7FA; color: #1A1A2E; font-size: 13px; }
+
+/* ── Layout ── */
+.app-layout { display: flex; min-height: 100vh; }
+
+/* ── Top Bar (full width) ── */
+.topbar { position: fixed; top: 0; left: 0; right: 0; height: 48px; background: #fff; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; padding: 0 20px; gap: 0; z-index: 200; }
+.topbar-logo { display: flex; align-items: center; margin-right: 32px; }
+.topbar-logo img { height: 26px; }
+.topbar-tabs { display: flex; height: 100%; }
+.topbar-tab { display: flex; align-items: center; padding: 0 18px; font-size: 13px; font-weight: 500; color: #6B7280; cursor: pointer; border-bottom: 2px solid transparent; height: 100%; }
+.topbar-tab.active { color: #004EEB; border-bottom-color: #004EEB; font-weight: 600; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.user-avatar { width: 30px; height: 30px; border-radius: 50%; background: #E8EDFF; display: flex; align-items: center; justify-content: center; }
+.user-name { font-size: 13px; color: #374151; font-weight: 500; }
+
+/* ── Sidebar ── */
+.sidebar { width: 200px; background: #fff; border-right: 1px solid #E5E7EB; position: fixed; top: 48px; bottom: 0; overflow-y: auto; z-index: 100; }
+.sidebar-collapse-btn { position: absolute; right: -12px; top: 20px; width: 24px; height: 24px; background: #fff; border: 1px solid #E5E7EB; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; color: #6B7280; z-index: 10; }
+.nav-group { }
+.nav-group-hd { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; font-size: 13px; color: #374151; font-weight: 500; cursor: pointer; }
+.nav-group-hd:hover { background: #F9FAFB; }
+.nav-group-hd .nav-arrow { font-size: 10px; color: #9CA3AF; transition: transform 0.2s; }
+.nav-group-hd.open .nav-arrow { transform: rotate(180deg); }
+.nav-sub { display: none; }
+.nav-sub.open { display: block; }
+.nav-sub-item { display: block; padding: 8px 16px 8px 32px; font-size: 13px; color: #6B7280; cursor: pointer; }
+.nav-sub-item:hover { background: #F9FAFB; color: #374151; }
+.nav-sub-item.active { color: #004EEB; font-weight: 600; background: #EFF6FF; border-left: 3px solid #004EEB; padding-left: 29px; }
+.nav-item { display: flex; align-items: center; padding: 10px 16px; font-size: 13px; color: #374151; cursor: pointer; font-weight: 500; }
+.nav-item:hover { background: #F9FAFB; }
+
+/* ── Main ── */
+.main { margin-left: 200px; margin-top: 48px; padding: 20px 24px; min-height: calc(100vh - 48px); }
+
+/* Breadcrumb */
+.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6B7280; margin-bottom: 16px; }
+.breadcrumb a { color: #6B7280; text-decoration: none; cursor: pointer; }
+.breadcrumb a:hover { color: #004EEB; }
+.breadcrumb .sep { color: #D1D5DB; }
+.breadcrumb .current { color: #111827; font-weight: 500; }
+
+/* ── Section card ── */
+.section-card { background: #fff; border: 1px solid #E5E7EB; margin-bottom: 12px; }
+.section-hd { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; cursor: pointer; user-select: none; background: #FAFAFA; border-bottom: 1px solid #E5E7EB; }
+.section-hd-left { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #111827; }
+.chevron { font-size: 12px; color: #6B7280; transition: transform 0.2s; }
+.chevron.collapsed { transform: rotate(-90deg); }
+.section-body { padding: 20px; }
+.section-body.collapsed { display: none; }
+
+/* ── Info grid ── */
+.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+.info-cell { padding: 10px 0; }
+.info-label { font-size: 12px; color: #6B7280; margin-bottom: 3px; }
+.info-val { font-size: 13px; color: #111827; font-weight: 400; }
+.info-val.empty { color: #9CA3AF; }
+.info-row-inline { display: flex; align-items: center; gap: 6px; }
+.info-inline-label { font-size: 13px; color: #6B7280; min-width: 120px; }
+
+/* ── Badges ── */
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 2px; font-size: 12px; font-weight: 500; }
+.tag-green { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
+.tag-blue { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+.tag-support { background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; font-weight: 700; font-size: 11px; }
+.tag-mode { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+
+/* ── Toggle ── */
+.toast-error { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); background: #DC2626; color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; z-index: 9999; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); white-space: nowrap; }
+.toast-error.show { display: flex; align-items: center; gap: 8px; }
+.toggle { width: 36px; height: 20px; border-radius: 10px; background: #2563EB; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; display: inline-block; }
+.toggle.off { background: #D1D5DB; }
+.toggle-knob { width: 16px; height: 16px; border-radius: 50%; background: #fff; position: absolute; top: 2px; left: 18px; transition: left 0.15s; }
+.toggle.off .toggle-knob { left: 2px; }
+.toggle-txt { font-size: 12px; font-weight: 600; color: #2563EB; }
+.toggle.off + .toggle-txt { color: #9CA3AF; }
+
+/* ── Onboard sub-section titles ── */
+.onboard-sub-title { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #F3F4F6; }
+.onboard-section { margin-bottom: 24px; }
+.onboard-section:last-child { margin-bottom: 0; }
+
+/* ── Modal overlay ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: #fff; border-radius: 8px; width: 520px; max-width: 95vw; box-shadow: 0 8px 32px rgba(0,0,0,0.18); overflow: hidden; }
+.modal-hd { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #E5E7EB; }
+.modal-title { font-size: 15px; font-weight: 600; color: #111827; }
+.modal-close { width: 28px; height: 28px; border: none; background: none; cursor: pointer; font-size: 18px; color: #6B7280; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+.modal-close:hover { background: #F3F4F6; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 14px 20px; border-top: 1px solid #E5E7EB; display: flex; justify-content: flex-end; gap: 10px; }
+.modal-field { margin-bottom: 16px; }
+.modal-label { font-size: 12px; color: #374151; font-weight: 500; margin-bottom: 5px; display: block; }
+.modal-label .req { color: #DC2626; margin-left: 2px; }
+.modal-select { width: 100%; padding: 8px 12px; border: 1px solid #D1D5DB; border-radius: 5px; font-size: 13px; color: #111827; background: #fff; -webkit-appearance: none; cursor: pointer; }
+.modal-select:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.modal-date { width: 100%; padding: 8px 12px; border: 1px solid #D1D5DB; border-radius: 5px; font-size: 13px; color: #111827; }
+.modal-date:focus { outline: none; border-color: #2563EB; }
+.modal-template-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #2563EB; cursor: pointer; margin-bottom: 16px; text-decoration: none; }
+.modal-template-link:hover { text-decoration: underline; }
+.modal-upload-area { border: 1.5px dashed #D1D5DB; border-radius: 6px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; background: #FAFAFA; transition: all 0.15s; }
+.modal-upload-area:hover { border-color: #2563EB; background: #EFF6FF; }
+.modal-upload-hint { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
+.modal-section-divider { border: none; border-top: 1px solid #F3F4F6; margin: 16px 0; }
+.modal-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.uploaded-file { display: none; align-items: center; gap: 8px; padding: 8px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 5px; font-size: 13px; color: #16A34A; margin-top: 8px; }
+
+/* ── Auto config block ── */
+.config-block { padding: 14px 16px; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 4px; }
+.config-row { display: flex; align-items: center; gap: 0; margin-bottom: 12px; }
+.config-row:last-child { margin-bottom: 0; }
+.config-key { font-size: 13px; color: #6B7280; min-width: 160px; }
+.config-val { display: flex; align-items: center; gap: 8px; }
+
+/* ── Manual config block ── */
+.manual-block { padding: 14px 16px; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 4px; }
+.manual-note { font-size: 12px; color: #6B7280; display: flex; align-items: center; gap: 6px; }
+.manual-note-icon { width: 16px; height: 16px; border-radius: 50%; background: #FEF3C7; color: #D97706; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.mode-select { padding: 5px 10px; border: 1px solid #D1D5DB; border-radius: 4px; font-size: 13px; color: #111827; background: #fff; cursor: pointer; min-width: 260px; }
+.mode-select:focus { outline: none; border-color: #2563EB; }
+.mode-date-input { padding: 5px 10px; border: 1px solid #D1D5DB; border-radius: 4px; font-size: 13px; color: #111827; }
+.mode-date-input:focus { outline: none; border-color: #2563EB; }
+.btn-initiate { background: #fff; color: #2563EB; border: 1.5px solid #2563EB; border-radius: 5px; padding: 5px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-initiate:hover { background: #EFF6FF; }
+.btn-primary-modal { background: #2563EB; color: #fff; border: none; border-radius: 5px; padding: 8px 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-primary-modal:hover { background: #1D4ED8; }
+.btn-cancel-modal { background: #fff; color: #374151; border: 1px solid #D1D5DB; border-radius: 5px; padding: 8px 20px; font-size: 13px; cursor: pointer; }
+.btn-cancel-modal:hover { background: #F9FAFB; }
+
+/* ── Edit btn ── */
+.btn-edit { background: #fff; color: #2563EB; border: 1px solid #2563EB; border-radius: 4px; padding: 5px 14px; font-size: 13px; cursor: pointer; }
+.btn-edit:hover { background: #EFF6FF; }
+
+/* ── Toast ── */
+.toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: #1F2937; color: #fff; padding: 9px 18px; border-radius: 6px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">Saved</div>
+<div id="toast-error-msg" class="toast-error"></div>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABz0AAAFqCAYAAACApUeRAAAACXBIWXMAACE4AAAhOAFFljFgAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAHDYSURBVHgB7d1bchvHlv/7lQW4Y0d0e5uKY9HdT4ZGIHoEgl5PWBTU/wGIGoGoEQgcgagRiJpAC7pEvwoagegRCH7S3qIdhLftE/u/CVSeXFUACd5xqQKyMr+fCBgkJcsyWZes/OVaKQIAAAAAAAAAAAAAAAAAAAAAAAAAAIDVMAKsSutwTeSf7lVbk4Fx7+maGH13TO0bkcGNc/+OMd9n79b+fOGfaU1v9Ot9kaSffVwfuK/9pS+dG30BAAAAAAAAAABAcAg9UY7W50YWZg5lIwsw0+GtLLA04r4uLtjUcNOuyfL1xLqXSmwvC081KNVX3QWlnfV9AQAAAAAAAAAAQKUQemJ+WaXmUSMLNq2Gm1moubHCQLMo++7/p+8C0Z8kqX2SNP1J6vV9KkUBAAAAAAAAAAD8ROiJ6Wjl5iDZkEQDzuR2Hm5mVZsRMRqE7mdhqNiu1E2PylAAAAAAAAAAAIDVI/TEeVkF52BDUhdu2rQpxjQrXrlZorNB6L91qQgFAAAAAAAAAABYLkJPnIScA9tyAadWcTYFi3AhqHGv4WsXgmpb3J4AAAAAAAAAAACgNISesWodNCWVO2JdwEnIWbZ9Se0Hd7p12BsUAAAAAAAAAACgeISesdBqzuFRSxINOpMW7WpXyEpXjNmTpPaBKlAAAAAAAAAAAIDFEXqGTIPONH0oNm1RzemtvAq0LnvSWd8XAAAAAAAAAAAAzIzQMzQEnVXWcwHoawJQAAAAAAAAAACA2RB6hoCgM0Q9kWRXkuQ1LXABAAAAAAAAAACuRuhZZa2DpgzlqRizwR6dATvZA1QD0L4AAAAAAAAAAADgFELPqsmqOgeP3Y9um6AzNqbvAtCOWPtS3t3sCgAAAAAAAAAAADKEnlVxXNVJ+1pkeu70bcubb18KAAAAAAAAAABA5Ag9fUZVJ67XE2u6UqvtsPcnAAAAAAAAAACIFaGnj1qHDRd2PiTsxEys2aP1LQAAAAAAAAAAiBGhp09oYYsiWOmKcQEorW8BAAAAAAAAAEAkCD19QNiJcvTY9xMAAAAAAAAAAMSA0HOVCDuxHD3CTwAAAAAAAAAAEDJCz1Ug7MRq9Ag/AQAAAAAAAABAiAg9l4mwE37oEX4CAAAAAAAAAICQEHouQ+uwIYOjtiTmoQD+2JfEPpLO+r4AAAAAAAAAAABUGKFnmVqHa5IOHrtv87aIXRPAR9bsSa22I50bPQEAAAAAAAAAAKggQs+ybP7qwk7bJuxEhbQlqb8k/AQAAAAAAAAAAFVD6Fk09u1EtfXY7xMAAAAAAAAAAFQNoWdR8la2T91H2wJU374k9QdUfQIAAAAAAAAAgCog9CwCrWwRrrb8o/5cujf6AgAAAAAAAAAA4ClCz0W0DhsyHLyglS0C16PlLQAAAAAAAAAA8Bmh57w2D566b9821Z2IhjV7Uqvt0PIWAAAAAAAAAAD4htBzVq3DDUkHL9xHGwLEp0fVJwAAAAAAAAAA8A2h5yyyvTvTXQFiR9UnAAAAAAAAAADwCKHnNNi7E7hIT1J5JO9udgUAAAAAAAAAAGCFEsHVtLozHX4k8ATOabgryPt8f1sAAAAAAAAAAIDVodLzMq3DNRkOn4mxWwLgOj1J6ndpdwsAAAAAAAAAAFaBSs+LtA43JB18JPAEptbIzpl7f9sWAAAAAAAAAACAJaPS8yxtZyvprgCYj5Vd+b2+I90bfQEAAAAAAAAAAFgCQs8x2tkCRaLdLQAAAAAAAAAAWBpCT9U61Nac70VbdAIoSk/S9Im8+64jAAAAAAAAAAAAJWJPzx//3pJ0+FEIPIGiNSRJXsnmwVMBAAAAAAAAAAAoUdyVnpu/ujAmbQuAclnpyO/1R+zzCQAAAAAAAAAAyhBn6Mn+ncAqsM8nAAAAAAAAAAAoRXyhZ75/5yv30YYAWLaeDOwD+d/1fQEAAAAAAAAAAChIXHt65oHneyHwBFalIXXzXjZ/eSgAAAAAAAAAAAAFiSf0bB00JR1+FA1dAKzSmojdk82DpwIAAAAAAAAAAFCAOEJPrSpL5b0LWtYEgC/aBJ8AAAAAAAAAAKAI4Yeem78+zarKAPioLfd+eSEAAAAAAAAAAAALMBKyLPBM2wLAb1a68nv9gXRv9AUAAAAAAAAAAGBG4YaemwfP3D+3BUBV7Ms/6ncJPgEAAAAAAAAAwKzCDD21XaaxWwKganqSuOCzc6MnAAAAAAAAAAAAUwov9CTwBKqO4BMAAAAAAAAAAMwkrNCTwBMIBcEnAAAAAAAAAACYWjihJ4EnEBqCTwAAAAAAAAAAMJUwQk8CTyBUBJ8AAAAAAAAAAOBa1Q89CTyB0BF8AgAAAAAAAACAKyVSZZsHzwg8geA1JB28kubhmgAAAAAAAAAAAFyguqHn5q9P3T+3BUAMNuSvg/cEnwAAAAAAAAAA4CLVDD2zwDNtC4CYbMjXgxcCAAAAAAAAAABwRvVCTwJPIF5GWtk+vgAAAAAAAAAAABOMVMnmLw9F7J4AiF1b3tzcEQAAAAAAAAAAAKlS6Nk63JB0+N6FnuzpB8BdCoZP5O1/7goAAAAAAAAAAIheNULP1mFD0oELPKUhADCWpg/k3XcdAQAAAAAAAAAAUfM/9CTwBHC5vgzsXfnf9X0BAAAAAAAAAADRSsR3w8ELIfAEcLE1qZtX2eIIAAAAAAAAAAAQLb9Dz81fn4qRpgDA5bQa/JU0D9nvFwAAAAAAAACASPkbem7++lgkbQsAXG9Dvh4+EwAAAAAAAAAAECU/9/RsHW5IOvgoADALO3wib/9zVwBUW0srt/+ZV28P6o38i+maGHNxRbe1fZGkf/x5fdAT+UtfOjf6grCNj5XxcWJs48LfN3mM1PXjoTs+/qsnAAAAACaewWpubD167rpsbK2s6R1/zPMXcL3W50b2PuscB8+vwMz8Cz11b7508F7YxxPAPFK5K+9udgWAv7IH6qOGDGVDrHvV5BtJTcONShpuaOJ+zRbZrrrn/hs99953Dw4/S1L7JGn6k9Tr+zyUV4Q+HA6SDUnq34sZbrhjxT0cuuOmkLGicceA1WOkL4m+u2MklX2pu0mczvq+AKGbXDgwntjUdz3P9Nqs9Po8ZqY67/rZOTWm55bS8yt7N73jiRydJGUCB4Aajw8H7hqkk8CXXYuM6DjxqrHiyTVIrz9D+c299/Nrj3vp5DH3eMRockydDm+58+z70X1dz6eGFOeS5y/OPQRsco7DZPex70+eW0uc4zDu3NLn12xczRwHMOZf6Ll5oBWeGwIA8+m5Qfxdd6PvCYDV04frYa2ZhZvG3HavjYIH/Asw+iC+714/ub9TV+r/ts+1Y8Wyh8WBCzaT22LTpjtemis+XvazB0qTdCUZfmCiBpV06SSnaXh1Pc4XIPSYIAUC1/qycWrhm9WxoWms4Hq0n4Wjx+NAFjwhEMf3fT3P3Ji6sMWCRZh4/kqSj5K4ez3nHapkHG6mtTvZuDoxd/waU4+fXzUMdc+wBKGIlF+h5+avT9nHE8DCrHTl7c27AmD59CE7/bf7WUWeTVoeDf6npVUAXTdCciFX7QMh6BKMjxmbtvwKxS+STdS448N0OD7gnclFA9k1eGVBQsFGE6TiAglj9qnWBypkvPgtkTv5Ncn3Be7j+zyLnVAR/i0YnMPoPm+SDucdvDO5iDsLOCtZqOWCUDeGtsPXUv+3LmNoxMCf0PPely13c34hAFAEK7su+HwiAMrXOmjKwLbcQ8B9Ca89vbaK2ZMkeU3AVSA9ZlLRh8YtqfYx05PUuodH2WOCBkt3apGJTnJGtz1IPoGTLVKhUgTwwslCpoqGL+fki+GYKIZPxuNoK+48c6/wnJx3777rCLBMupBgeNQaLdZpSojjay0UyRYZMMeBcPkRerKPJ4AysL8nUJ7joDN5GMCE1rS00miXCr856QNkOngc9ASNmDbHB0oTXphQNG2Pu08lNrBkYS9+O82aPYIYLF02hk4fxnn/1ypQ6XDeoVQnC3JbEt+WeyzyRpD8CD03Dz4JgSeA4vUlqf/AjRsoyDi0ErMd/WR7NullX7KwYgr6EDmUp4EGnRfj+EARxi3rYgkTircvqf3g7lkdzkWgYHEufpuUV6LVajs8a6IUJ0FnK6ox9NU471Ac7mPnZRWg7jn2zbcvBai41Yee7OMJoEzs7wksLsbQanq9rLqPB4PzdOsCMQ+jPm54cMSsxi21snPH9z1uK4VWecCiWPx2MRY6oSgEndPTMbZNn3NPx0wIOqfFAgNU3mpDz7x8/L0AQJns8Im8/c9dATCbfL9tN7kVXYuXefQIP4UJ0cv13Jj3EROiuFBW0TlsytA+JuhcilEASkgBTIXFb9NhoRPmxTm2iB7PYLgSz6eL0YU9hJ+ooNWFnuzjCWCZBvYH+d/1fQFwvTzsfCrco+fRi/LBm4fJ6fDQiEmsNvdBz732JKm/5LwEJowrziR193XGgzPJKtBkh0UVuBJj56L1CD9xCosJisVzLCpmdaHnj1/cw6V5KACwHD35R/0H6d7oC6qj9UtLBmlTavKNVNVQfnMjxG4lWu/8+HedfH8mTG4tzkpHavUnUTwUEJLPo+3uSc+5J0WI1nX+0uu2lecEFZ4YnytmWO1uE9b+LGnSrcxxRRBTHCaIcRGCmLL1CD8jxj2sfNzbUBGrCT3zybEXAgDLZGVX3t58IvBfmN0AepLU73o5OOThu0zuofvmjoSI42ZRtLyNSevLhgxki6rOSugxYbpi2SKs2ougzhWdJPy99sTrxS6bB0+ZKC5FuGNBTI+97pdLK65r9UcEM5HQ+aPB0Tbj7KXRscwu9zb4bPmhJ21tAaxSKneZYPZc2PcJvyqO85WQWqG3LShTWOGWnqPD4TMxtiUoApOhIWNxQJX1hNa3y5ePAz9JiDT4fPvtI/ENnT6Wwd/FjygPVWerpwvff6/v0F0lUDrOtvLYvXguXY2eG9tsu7HNawE8s/zQk7a2AFaLNre+u/dlW4x5JsFKd+TNd21ZtRCrKHwXwkP35q9u4sa2OW4Kx2RoaAg7Q9ITws/luXfwPujzxqcFmK3DDRkOnnGdWioWOsWAsNM3dFcJDeNsv9DyFh5abuhJW1sAPqDNrd9Cn+zSVjtvb96VVcmq9AYveEBYmWqGWxw3y9CXNH1Uif1/cTkmYULWE8LP8m0eWAmZHT6Rt/+5K6tEp49VY6FTyFgg6C/mgaqPjkM+Y3EBvJLIsuiFyZinAgCrZtwD/o9uUhJ+MoG31lrl/59Wd6bDj0zGr1Tetu/e36oz0aiTNxw3y7AmSfIq31MNlaNhpy7aSSXshTtxa4hWaWkL/s1f6FxUhtbnhoQuSW7LKum1Kh18FALPVWpwHQmQnlubB59E0l0CT0/pPJD+jHR+GtWii3U2D55lz9EEnr5quJTpPc+y8MXyQs+stQN7RADwRCIBt0+F5xrSPFzug/D4IUEDFR7C/WBqz7x/INAJAQ1xmLxZtjYPixUyPk8IO2PScNfEvWzilNACs7JmQ1bheMLYXauYl/FBY3Qd4X5fdZOLnji3qqCRLfyo0gLU2Ol1Mh3qXt/8zKpBn2U/srgAq7ac9rZ6oOtqDADwiQ/tpXBetkI28AfGZHBLOv/Vk2XI78E8hPvKSkd+rz/ybp/PfCKfsHOVdG+Ut98+EviJ9pAY0+t4rf6EVpUF0ErPtB76vEFP3ty8JcuUVXeKbjPUEPhH7/e/155Ues/3GDEOCAF77PqMe1fV9WRgH8j/ru8LsALLqfTMJ1sBwC+m9pTVR1iJ4VfLaW2mwZW2JeVBwV9GWvJXN05advXvZcaVIFp9QOC5WsZuyb2DV94cGziRt3xmxTlyeh3XBb5UbGE6DVkmqjv9p/d7HQvyXFodjANC0Was7SF9Hr33yyvuXZXXkLqhqhorU37omW3izUUKgJfWZDigzS1WYFD+Cn+CqyrZcJNdH1f+wH1SFcyDiS98C8VjR8tnXK2ddatg33hcZxl7l+r1StvLcU+vio1sDEbw6TfGAeHJx9q04vTFeEEB+3aGowrb+iBI5Yae2U0jZZANwF86yGVyCstmk4aUJVsZeUBwVT2NlYZbP/69NaoKXs1eY7jKhnw9eCVYrXw/oY/s24lrNNwT9nt3H37GYgVcquyOH9zTq6pB8OmxPIxhHBAmzr1VY0FB6NoEn1i2ckPPwVFbqPIE4LtEqPbEciW2IWXIK/V4GK8uDbdeyLJt/vpUkuQVD5ge03P63i/LPzag19WNUbVUm3MEUzOynVWOsLAOF0pvSFm4p1cd4YtvCGNiwbm3KiwoiAXBJ5aqvNBTbxSJeSgA4L8N+sxjuZLiV/iftCZtCKpLq8+1QmhZsjbIaVvgP93ziwfF5comYQZUS2FeedUn5y3OsiVcU8Z7oHFPDwHhiy/GVdOEMbHg3Fum/L71ggUFUSH4xNKUF3oOB6xGB1AdpvaUNmRYomKPNa1EIvAMh1YIbf5S7sIx2iBXVZtFOktwqqoDWFi+1yeTqBiryTdSpONOH+yBFhDCl1XThYFUTceIc28Z8vmLj9miTsSG4BNLUU7oee/LFiuhAFTMmvz1X0wkY1nWpPW5IUXIHhiGBJ7BsbulPWyPq4IZq1WTqT2jZWaJqOpAOfLrbtkLWlAN1hRX6Umnj5DlP1sW5i6XnlN5W3vmBuJF8FmmvJ0t9624EXyidOWEnsZw4AKooOQxA1ssT23xCYzjwJMVyAFaK6VrxsnkKO06qyyRF9yvSkBVB8rVcMfWHpM8kKImevNx4Edh4jhkDfl68EqwHK2D5uicYpwMfWZ6xaKDguVbq9DOFqrNYkCUqfjQU6s8GXQDqCYXMgyZiMJyDBd8mCbwDJ9WmhXZypRqkJA02EqiQMftbKnqwFK0s+ONhQsxW1t4Ip1xYDyy8eAS93uPVVZ9JpxTmLQhXw8594pABTUuZPfk//3CIhOUovjQkypPAFWmewrQNhDLYGxD5pWHV1QjxaCo/YYJPMNTdCgeq/GeyLSzxTLp8UbrvLitHTVkXgSe8dH93rnnl+e4+gw4Q+eH6NCwGDoN4Sp184rxMMpQbOi5+aveCBoCAFVmhEEtymfM9zIPwqvYrMnXg8WuSRwz4dL9PVkdOz9tqcSeQlid/NrMORynYTLvOJDAM1a6EI6J4WK1Dtfk3i/aOYNAGVdpszB+TrRhx/VGC/qBYhUXemaDr3RLAKDqdPU9g1qUzZrZJzn1wZzwKj66un/eSS6OmfDVDW1u55Et1rR7BAdYsYY7hz9SwRWjwS2ZVbaIicAzYmvsMVig8RhZK/mA6yRCNdqsssWFg4/cszCFDdq4o2jFhZ5pqpvPNgQAQkC1J8o3++B/ONRwoyGIz7z7DQ+zVZMNQcg2CExmlLexawvgC63apn1eXGzSmOW3n3RtYPI4chsLdwDB+HzS6jMq7TGtNfdcxULDaekeudniQmBKutD7x7+3BChIMaEnVZ4AQkO1J8rXmGmltlYlGcsgMFa6Cn3Wlf0a7LBPYRyK2vs1dLSxg9/aBJ8RSWbY25029ZiUTQzznDo3zifMS5+rWGh4vaybCnvkYg5J8oKKahSlmNCTKk8AIaLaE2VbO2pM9fuylZJUJUXvr/+a/iE732edh/J4rMnXQ1oCXYU2dqgGgs9oJLen/q15dVFDgLFEuOfPg8ATi9LODOzFfbk88GwLMB8qqlGYxUNPqjwBhIpqT5RtmHx/7e/J7rO2LYAkj6eq5svawvCwGR0N87hnXexkkpNJKlQBwWccpqvOzzp90LUB59DaflYEnihKzbDo4CIEnihCNg9Lm1ssbvHQc3jUFAYNAEJFtSdKNbh15S+PK5PYvwm5Nfn66OoHAJ3QSRIexGPFPes8Ak9UE8Fn+Nak9blx5e+492WLCWRcitb20yPwRJFoc3ve5i8PuV+hMDqfwf0NC1o89DSGhzEA4aLaE2WySePKX08Heo+9+vcgMubhlb/MhE7cuGedxiQnqo3gM3i1yyf09PplWMSEK63NtPVBrPJFpK+EsQCKxKKDE1ngafcEKE6D+xsWtVjoma08ZOAAIHDmmpABmFdiG5f+Wn6PZaCH0zTUuuwBO9/HsyGIm5HHAiY5EQqCz5ANr6hAp9MHpjLl1gcxG2ZjAbo9oGgsOlCtww0CT5SD+xsWs1joSZUngBjoPmncbFGK5PaFX85W93OPxSW+/r9b575GCzyMGWlFf886bg3OJCeC0M6rKBAcc8niNxYxYXoEL1fZPHjGnrgoT+ShTNZRZfhegHJwf8NC5g89f/xF95RqCADEgJstytG48KuDo7Zwj8WlavdPfUpIjrNiv2cNhy+EwBNBsXu0rg6QMd+f+5re01nEhJlQDXOhfPEAz/AoU7yhzPEWEnQkQJm4v2F+84eextI6C0BEuNmiJK3PjVOfa8VeQktlXMG4MGfyekRIjnOSeMfpWVWHbQkQmkRe5YEYgmHtjXNfy6vUgVlQDXPW5q+PWTyA5Yhwnuiko0pDgHJxf8Pc5gs9s4oCWkQAiMrahS0lgUUN6o3jj6nYw3TW5D8GeRUbITkuthZlVRhVHQhbPsnIIryAnNnmgLa2mFvEi53Oaun4J90VYDniC2XyjioNAZaCAhTMZ77QM68oAIDInGkpCRRhcj8nKvYwrSRtEpLjSkbiOjao6kAcGvL14JUgFI3jj2hri8XEudjprKzlprwQYKmSeOaJdHEOHVWwXBSgYC6zh55axp4YJv4BxEcr3HmYRNHsaN85fUinYg/TsskdQnJc6Wwb5JBlYYFtCxADHY/eO3gmCMN4mwMWlmNRsS12OouWm1idjSjmiVhgiJWhAAWzmz30HB7pig7KigHEyQitg1CsmnyTvbOHE2ahk96E5Ljamnx9FP5K7KyqQ6+flucTxMPItvz4dyotQjD86ra0fmlxT8fCYlrsdJHBkba0bQiwEoFXP7LAEKukcx+0uMWMZg89aaMGIGbcbFE0azayfRl5SAdQtETuSOjSrNVnQ4DYJMmLfBIS1ZbekNRSuYsixNsCUFtusnAAqxTy8ccCQ/iAFreY0WyhZ+uLtuBrCADEK76N6lE29mUEUA5rwl51rpOcMmoRDsRnTYYD9q6runwM2BCgEBG2AGwdbtByEx4Id19dtlSBF2hxi9nMFnoOhIl+ANC99IDi6IrJhgBA8cKdgMkq5JnkROTY3zMEDQGKEluL27wC7ZUAPkjSpoSGKmr4gq57mNFsoWdimOgHAL3ZxrBRPQCg+swwvEpIneSkQh7IZft7Mi4FkFmT/xjE0wFhONRFHw0BfBDa4vishT4LDOGRr4fkUpja9KEn+40BwITAN6oHAITBmKaEJm/p2RAAuUResPodQC6S51StQDM8k8MjIVWitdz/R7aPJ+ARm94VYEozVHpSzg4Ax7TFB5NLAADvBbbqPJvkdJNKACY15OsB1c8AdLHTbQkdFWjwVSiV1umA/abhnxjubyjMdKFn1kKKyQUAmBBX6yAAQFWtSetzQ0LAJCdwOdrcAlAx7HtGBVpZ+u7VEyvdcy/9Oq4XwrYSeafHbQF8o/tWA1OqT/W7hkdNl6YLAGBCzWoFfFcAAPDZ8CtdFduTqmOSc9l6bnJhX8T2xdqf3aPjodjhbxf+TlP7RmRww32w5p4bv5fUhe35xARdMZbJiFZmdAVA3NaOGu6f+xIi7fggaUOwCHdfd8eHsT9l7zU9Vv7sSedW/9p/s/VlQwZJQ5JUWwvfcTeehuBEklS7Ek0XGKZ0jihYvpjA2H13vrlxdO3TheNpYxvZONqa24yhL5Uv5u38V0+Aa0wXetLaFgDOs6YlzcMn0r1x/cMBAAArM7glVcckZ7m0iuN48nPYLWwyofVpTQb/sZFN5OgETj6R0xSUQ7+39/62LW//c1cAxGuYNiXE0DMPZNqCefTczf61pKYj9T/2pwo4L9JZ1+NKX53sc+0wkNgt5o1HrKl2JdrgqC2JaQjmNx5Tp0lX6kf7c4+pdYFBWrvjnn+23GdUOI6FspgXpbs+9MwHFU0BAJy1Jl8f6QrHPQEAwFdBrDof0marWG6y075cePLzOvmf2z31tXEQmk2SUiVSOFN7Ks3DPRblYUX6o5dO/PaOv2qyipXJF8pkk4aEiI4Ps9Jz8bmk7j787mZXypD/uV1pfW67gKZN+Fnh65u2tTWE13Pou5Cz486zD1L7s1PYmPpkgcHzbHFBzTwWa1sSvQAW82Iprg89aW0LAFfIBoV7AsQpb32YtT2caNNiTS//ZbMmifk+a3loXOhipSGsUozd5e19zh03w1tZm0yOm8WFseqcSfLFnQSdZU1+TuMkCO1mn2cr2bO9owhAi7EmX2et6Z4IUI7TrTFt0p+5mmW8+CG75w833J9xh3Z+BUq0TWJg6PgwvXwfzp2l3uvz839LNg/0Peb2qA2pItrazm58npW5eHBsvLggC6b1/DINiVWoi3pQuOvTzHsH72lBBACX6ss/6rdYTV+gzYNPUtWHhbCNJriSjqTpTwsN7rM2SBqCpi3GGMHLV77a2r6b1PwwWrE6u5PKsJYbvrpghBB0Rj15c7Oaq2LzVecvBAuwPZHariT/eFn6pMyi9OetC8q4NywulbsrDbfnofs0pfVPAv9k7frkQ1YxVuYE77idH2PERVX3vn+RPJDh2nCdVYSdF4l97JYMblVuz8HNg2fun3RVuV5ePZ38sbuyMXU2Vqq9jzb4NHZPXq8/EuAaV4eeDCwA4HpVnFTyGaGnT/LAamheljbBpYP2Ya0Z/YrFsJRfTZY/7LWFyrDpvblZzdYt3BPm58vk5zyOz3HarM1Nf/5vb96VKiH09I0uVHrtJvD3VjKBz71+MVW971/kxy97knA/uJSP9/t7X7Zd8PlMYlS10JO5/yl4toAw6uAzfS1vvqPNL6519SCIldUAcD1WGhWLCW4P6KDeBZ3LXsFIu5ZqW8WESz5BvuX+4w85bq5RyVXnWSu7tmBGeg1P2vLm25dSdXqO26+esYfRnKq2MI/Q0w8+BiibB23u9TOq4n3/IsxLXs73xU2xdg6s2r2X+ZeruLkQs+3lmDrrniXx7XNcxUV9WInkml++LwCAq1nDRBwCkYWdW/Jm/Za8udle+irGt+t72X9b3MM7qkMfPPThXh8+lv2Ar5N5eqwmw7tZdSmuUKvWPmm66lwsbbZmo9fsHUn+/CGIwFPpOf762wcu9HyU36MwExP1vmqY1Srv59fhXj+7Qb0hITCG69h5fXdffOLluTqpNmBhuO+ybQUIPC8wGlP/ccvbMXV27nNPBC5zdehpWFELAFNYy1ZZAdWVPzhnYacHg/psYsv+wAS353yaHM3Cz/UtITC/3MBUK/QcHLXdQVatv/Mq6fmYDH5YyYKVZWBRzHy0woYxKq7jc9g5aXyvzxZBSHjXuaIZ25Cqyzo+EMicMr7fv13fFd/pOat/X/hJFxiyqOC8Ko2pU7MnAC50eejJwxEATC9JmwJUkTGdbAWjbw/OnfX90Yr+nsA3/q4u14fTfDIUZ1Vp8lMnYdi7a3rj8zGENobXYVHM7Kj2xOWqUS12li6C0AlprgNhyzo+0OJ+Qr+a93sq0byVpjrWbgjG+u578qBS51h+794XAOdcUelptwQAMB2b3BGgWvJBvbYN9HUFoz5sEHz6pQqry3UyVCeFUF1ZlSeu566NGgBWodqjSONFMUY6gutR7YmLZPdzDxe9TYsx4hTSandLYCwwQe/3FanuPKs27Ar8w6KC08b3xHffVXBsaT8IgHMuDz0Tc1sAANPRCaXmIW34UBF2P3twrsKgPpvUkgdCG7PVq9Lq8nxS6LmgeqjynE42OfPnD1kAGKNsr8+bem+g3e00qPbEiYlqsYq3wmaMeDVTsbb2kxgLnEjty/x+X9FuDvnfO65ztG79//9lUcGJqt8TrfQEwDkXh57Zig/ZEADA9L4+Yh9k+C9/cK5WWySd1LeWie2Vsb18r6+KrS5P6m0qQCZVpOKDSZjrpfZ5EIFFEfKW1lR2X4dqT2Sy6vDq3c+vko8RuQaExg6eCZx0R96tbwVwv49svDL0+/+XRQVj/Uo+454X1/mV8HyP6Vwceg6PmgIAmE0itLiF5yr84KwPI1rZhCWzefu4Ku31Nda50XfHDGH5WBUqPpiEmUJ2Hd8WnND7Q7bPJ9VeV6LaM3I2bwsdYnW4trWn6jscukDDCouJNcx/811bUD2+Ly5mgaEct4yu4jPuWdb0JCZD+U2AKVzS3ja5LwCA2VjTFMBbbqK86g/OBFhLphOkFW6npbKJUFaDVgaTMNcI4DpelmyfT3tXCD4vx1YM8TKmU7kuH7PKqr5ZHBcEFmho4Pkouv26w+H3OEQXFUS/wHC8CCiQe6KxDYlJUoH20fDCxaGnsbS2BYDZNaT1uSGAdwKZKNeVmExoLUkWeIbRPtOyt2clUOV5DQLPaxF8Xu+v/6JKODa6rcHrbx9E0Q67NngknP/VpoGMLtCIWR547klYGhKPnvgs+kUF42fcoBYBxbWgzdY+CjCF+rmvtL5sSBrVDQnT6bswvCMYMWtuMLrh3hsCTBrWmu6fewJ4I7CJcq32jH0ypHQBBZ6q9tWepAN9wKfCyWfDo5YYI7gIgefUNPhsfbkrqWFC5ELJY2ke7kr3BsFQDDTw1G0NYqGT2Pe+uHGiYT/Iqoo9kAkx8MznmCOS/iy+in5RQWDPuGNWNiSmRyhraW+7QraVzak09GPTEa+3TDgfeg4jO1lwPd1LgNYaF7v3ZWv0UMVEKnL5vp57AnghwIlyrfa8d9Al+CxLgA+Durfn5peXblj+WOAvw8/nYgSeM9Pg896XR+6YeiE4a02+/r9b7p1nu9BpS9t3N7ckNjpvsfnlMYuTKyj2QCafd9uT0AyShiRWIuJvCBD1ogLdw3MYZteDxNyWmPxRD29v8gpwYWfDXUP02ap5/LUH0nOhe9uNOF+Kh863t7VMImJCmj4g8LyCDkrzNlpAjn094YvUPg93oty+FpRAHwYDXP2qUkO3Cp/pIrK4Wp9NJ+jreMnyiWP2gb5Q7b4gcHZfzO+PJFapiff/vcqiDmTSnXDn3dKWxMTX1pu6jUS0iwqywDPMfa315yoS0xaF+3QrWb5R4Ple5Nw1RL++Z//bz/v3+dAzthUCuJwxe/LuOyYJr6OryZlUwYmGNA+p/MVq6b6X79bD3bdL25WyZ1PBxg+Dge75pRXCvu+xEzX28jwn9Ov4Mry52Xb/ZE/fs3TSk7FqwAKuZplWfs+nEqRKYg5kQl/glJg7EpOap+1tB0dtiVM/2MBTDY+aEhWP20cHaiLwbFz+m6TtY/B5OvRsZQ8/Ma0QwFWG1svyZC8lgz0Bxr4exjWwh2fcZFdtEPYKd21XapnMKlDYD4PHqBD2UtQrzy8TwXV8Wd7c3M4CZJz2138RqIcpkvv5FCxzGZUSbSBj94Ne4KQti+Pq5NEfFUX4RcfaSaQLDNP0Udj3xMh+rtZ2BUszVeB5/Jv9Cz5Ph56DAYEnTtQHPcF0eLDEJJvS8hirEtFkF5NZhQn+YXCEFrd+So8IX84itChWFiC7IBkTEqqrg2S2uXaM0BWkOqINZEZV2UGzWxITXxflRruoIN0JunthjAtHbY2F70syU+B5/C/5FXyeDj2TtCkAgMUktiHAKli7E81kV+0rAqxCBP4wOClvd8cEqHcM+wueksZzHV8W/X6yx99ZjVEFDoLhrh1vvmVB2Jh2BZGUDg9VEGcgE/5C1SjD7KF/15z85xDfWDv0ttEqxmtn/jyPks0VeB7/y/4En6dDT1tjP08AWFhCe1ssn+7D/HZ9V2KRt7jtCuan37/QHwbPoi2yX+Jre3Y1vY7Hdk4uSz5JsiM4wYLngNge144LpMmewH+x7fmYiaAqO8ZAppZ0xTf5no+R7ePt7on1P9sSshgXFTD3sxQLBZ7Hf4gfwefp0NNY2tsCwOLWpPW5IcDSuIG9+f2JxMbYnwRzinTPQI4Zz0TW9uxKeh0/IpQr05ubbSZMJtHiNhB5xRjOq9d1oRMdHnx278uWRLf4KYKq7CirPN04zsf9PI3xao+98mVto+9K51bY1/4oK+Q9rKQOTCGB5/Eftvrg8yT0bB3qyo+GAAAWN/yKynksj7btC31gf5HUw9W0lZG0o2yhyTHjlyirOy4T6Tm5bPliD0KQXENaX1j0XHUxbW0wq7wrCB0efGbMY4mK3Y+iKjvGQMZ4+IwRZUeVCMbTse6DXLNsb1SiQgPP4z90tcHnSeg5GPDAAwCFGdwSYBl0v4pY9zaoHzGRNY+shWak+35xzPiD1rYnslbT7MW3FPlE2HNBLnVTHKguvXbEtLXBPIx8EPgpX3QR0TxkVoH2QEKn1bsxBjKpeBjIxNZRJZK9rdPBe4nPPgu8ylNK4Hn8h68u+DwJPWltCwDFSRIqPbEEul/FMN7JrnzgS8XOTCJvockx4xFa2x6LsdX0KiX13exaCPdtYB/6SuPacb3UsNjJVwPZlqhEUoEWXTtV5cYUb7/1q/VmdNWAkextvfmrnl8NiY0dsji0JKUGnsf/kdUEnxOhJyutAaAw1jQFKB3tEJ2eYAYcM8Ix4wda2+a08ppzcrm05aW2hYfOATSlmW1zg8pJaWs7DTo8+CumcYB25omhAi1va9uQ2PjY2nZ41JSYxLC3tQbZkrYlRrS2LcVSAs/j/9jyg8+T0NMaqpIAoDgNAcpEO8SR9CfBtPY5ZhTHzMrlLe0aEr3IK69XSdvC630UIl8PWYBQOZFUtBSBDg9+0hao0YwDtDPPn20JnVagxdjWVg2tf89XMe2Xa+2TKKqo42xrm897scircEsNPI//o8sNPicrPWlvCwBFan1uCFAWWprlLG3LppYMwt9HaDo9wWoNpSnQB7/nPMSvkBUCZ2XT8KsjgpO0BbPoCTwTUTimFWidW2EH75u/PIy2Ak1DbV1I5ZOY9suNYW/r1uGaCzxfSawLRrUrDgq1ksDz+D++vOAzDz1bWUsb2toAQJGGX1FBj3LQDnESq/enwTFzwpqeYMXMfYme7v8U+CSN76j2zCWcj9WiVZ50bZgNHR68ku37GMvipwjaUGeBp92TaHm4CCWe/XL7wS8EzwNPDaciLVRjzFO0lQaex3+J5QSfeeg5GFDlCQCFG9wSoAy0QzxBgDUdjpkTNiEoXzU6zAiVWp6g2lM12NezQtiPdg6G+75PotlrMII21NEHni50S44+iG9i2S/X2rAXFUQfeIqf++VWmBeB59gSgs9Re1vDQw4AFC1JqPRE8ajYO60+6AmuxjFzhmXyc5V+PGhK9B1mWLXsDao9c+zrWQ16rPrWRrESuO/7JZbWtoEvbtr89XHkgac+Y3W8e8bKx9kNCV7gHVMIPHMs3C6MV4HnWMnBZx56JkNWWwNA0ay9IUDRGPhhVhwzpxGUr5axPHeImySDP6j2ZF/PquBYnY+l0tMbsbS21QWHIS9u2vzVTVKntOj38hnLbkkMdK/cUOl1Mh18lOgDTxZuF8XLwHOsxOBzVOkZ6Wa4AFAqKj1RMAZ+5/H9uBrHDLyTUFGWDJ4L/JFXzsUdihjDmNV3VHkugtDTF3G0tu0HveAwDzzbEjtfn7FiaG0b8vNtHnj6GU4tGwu3C+F14DlWUvCZh542+V4AAEVrCFAkBn6YFcfMeYTAq2VsU2LGQgRfxR1Es8+u//TaAVReDK1t0+dB3ue13ea9X14QeI74+IzV+qL38oYEzfaCfb5tHW5IOtQKz4bEjuelQlQi8BwrIfjMQ0/DCQUApWh9bghQiPQ1A79LsYL/IjwswDe6ejn2/TyHlr08fZQM9iRua4xZfcY+wAiAhmbBt7bVc/W7toRmXH1mImmdeh1fn7FSF3GEzkqYiwo2f3noAk8XTtm4n5PGWLi9sEoFnmMFB5+0twWAUtUYtKAYacK+KZcj9LyISWmhCb8MhpFXk7nJUNpT+kkn0LR9aMyGtabAU0lbgKobDJsSvADP1ZN2m3QEGPM2kEnuS9DcOPrtenhzIlnLaLtH4DnCwu2FVTLwHCsw+Eyy1VYAgHIMaR+OIjBRjpntS2d9XwCfJJGHnibpCjxmX0vMLBPa3kqOPghQeWngVWgBVmTn1We02zwl3fEykMm7qQR+Hw9sUUHeMvoVLaPPoMpzIZUOPMcKCj4TkaOGAABKkt4QYGGs8MesDJXB8I9N7kjMaG3rt9qwIzFLbEPgHyoeEIrEBD4GCOx5bfPgGdVnZ7lgO0n3xEfDo6YELbBFBXkF9UcxEbQknomniwoqIojAc6yA4DORgeEGBgBlMUwgoQCs8Mds+uz9BS+ZmPfzpGLfe/kkS8QV8sltgX9YLIEQtL5oBVpDghVQIKNhzL0DnTTfFpzhgm1fAxkb+n65AS0qoIL6EoHuibwkQQWeYwsGnwkT8gBQImNob4sFpa9Z7YaZGBN3tRL8lG+pEW/7TFrbVoSNeZFRQ5psfeMXFksgEEMCmUpoHTSz/TtN6D+veXgebAddSR3IogJ9FqKC+gp0N5tXkIHn2ALBJ6EnAAA+s7UXAsyCqhD4aDCIe7/AVFiMUAVp5ItG1v7JJJxPUol7n1kEJOT29oEEMhrGpIFOmhchGd4VXwVfSR1AGJa3s6WC+jLayp9OVXMJOvAcmzP4TAQAUJ7UNASYm3uIfvstE16YAVUh8FXkW2r8XqNNeRXU6xG3t3WGX9Hi1id12RMgBMY2JVgVD2RoZzsFz/cZHIbcSSWARQWbvz4etbONewHo5fpijnYEM4si8BybI/jU0LMhAIByGK6xWADtEDErjhn4KhnG/KC/L90bfYH/OtnPKeLgc3BL4Ak30dtZjzuERxjyKrRAFz658/QfteouUB2HMbSzvUIF9hkMeT/PKj/bHi8oSHdpZ3sFa/1eVOCpqALPsRmDz0Rs7RsBAAD+oU0pZsUxA381JFZp1PtEVlDEPy+bNAR+oLUtQhFyFZoGMlVc1EQYMz2f29qOJSbcLg1VrQD88e8tFhRMwUpX3q7vCmYSZeA5NkPwmXCDA4BScY3FnGhTillxzMBjNvleYmWS94LqsBFXetaEBdHeiHx/WYQj6Cq0CgYyVHfOwPO2tqp1qPNNgS4sSF9XrgJQfx73fnklSfKKvOU6bu6iNngkmEnUgefYlMFnXQAAZWKgg/nQphSz4piBz0zE98Na+rOgOmou9EwlTtaw35Qf+ixiQjDCrULbr1Qgo9Wdw8ELFyQ1BVOoQFtbNRhsZBvXBan2SqokX1DQFkPYOZ2kLZ31nmBqBJ4T8uBTzP/IpYuPkqgnIABgGZqHXGcxu1RY4Y/ZcMzAbw2JFfvyVcxXPYkXY1YvpLTERhiCrkIz1WnJSHXnrPqVaGurklBDbA2dv63Gti20i55dap9X5ufrCQLPC1xT8anrQTghAaBMa//kOovZ/V5jwguzefst+3/BZ7HeCwk8q6aT7c/WkzgxZvVCxapbgMtoFVqokiP/n9VaB03CmHmY7cpU8dpamJXUVelgtHnwlAUFs3KBdv3PtmBqBJ5XuCL4pL0tAAC+0Q3du9mkKzAdPWYAX7U+N6JtFyq0tq0ka/bF2IbEZy3rUMIYZLWS9CcBQmDshva3D46Ou30OxbTCNh24MEa2Q/z2l0or0N7drE4FWnaOBWho/f4Z6IKCVF5IFkJZwdTyKurOLcaZUyLwnMIlrW6p9AQAwDtDKvYwI44ZeGxQb0i8qPSsIhNxWE2HkhWzPVpiIxgm0ElaY/bEV3kr20/uo23BjNz19916db5vefvohgRHfw6e7mudtbL95ZULPAmh5mHtTqX2QvZBIs+EY+16Gny2Tldca6UnDzUAAPjE1pjswmw4ZgA/WdMTVI+VHtUxWA1LlSfCYc3tIK+lPra21cqzobb4C3WPx7K5oK0q+3iOafvoRMLjY2vbvHpaFxRsi6FV9HzSHXn7XXX2QvZAVuVppSWYli5a6Y4/ob0tAJQtr3DpCTCdvrcrG+Erjhn4LWsTGmmCROhZVfG23WLculrWdgUIhZEQW2/ue1WppJVng6O2pPKQxToLSORB5SrQQm0fnUpHfHLvy1bWLppWtguw+/Lmu7ZgVuHui10GI6f2OCb0BADAJ5ZWiJgRxwzgr7plz5oq0rA61sljY74RrA6dGxCKvDIqvIqo1PpR5TlZeZYYKs8Wku5I57vqXXtDbR/9e82Tc2xUPW1Ot8zErLIq6gcClO/UczehJwAAPjGpf+2S4DeOGfgu5kpPGRJ6VpGG1Wmsx2x6Q7A6f9QJPRGGUFtvilltFdpk2JltV0bl2WJc4FnVCrQQ20db6Ur3xmrHzq3DDRkOnknqwk6qpxfVz9pGs4/nvLqC6ZnTxQBBDkEAAKis1MM9LOA3jhnAXzzkVxRhNVZif+WTvUBRsgVPAVrllhJ5m82P7qO2S4eo7lyUcQF2lVtuGgnvGLAr3NdaW0X/+GUvO8eo7ixGYgk8F+CuUH2x8lwwnVR2Jj+l0hMAAJ+wwh+z4pgBgIL9xQVPAwGWK/1ZgFCE2OXBrqjqRttspvJCJNB2pith98X88UiqLbz9/kzyXpaNVtHlsPaJdNaZp1hc273uCPt7Xs3KjguJe5NfotITAABv2B4r/DEbjhnAYz1BNXW4rmIlmBxESBoSmmVXoWnYee/gvQs8NQhqCAoy2mOwc6u693oN6kJUO1reOabfw82Dpy7s/CRUTxcs3ZG367uChY2qPXVP1J7gYnng2T77ZSo9AQDwhTU9AWbBMQMAKFKoLSmrwNY+ChAKm3wf3H54y6pC07BzKE/ZU7AMWeBZ/ZabYe6Z21/Kz4V9cUtW4X1yPaUVjLYld939gAUwZ10SeCpCTwAoW91SLYDprHIPC1STST8I4L+GAACuVqO9LQIS4n6DZZ+jhJ0lCyTwzJjwwjpbcrcDws7ypfa5vCPwLAPB5wWuCDyVhp494ZsFACUaEnpiOqvYwwLVRlUIAABhYO8rhKUhoSnrHL33ZUuM0bCzQdhZmr4k8iCMwFN04WsjvD1zS1oA3jpsyOBo24WdD4WwszypfSnv1rcFpSH4nHBN4Kmo9AQAwBfW/ibALDhmAAAIQU+AsIRW6Vls4DmuOhOzzV6CpXOBp70b1MISo8dMYKGnKfocO2i6YOSxO89akuj3irCzNHnguSUoHcGnTBV4KkJPAAB88UedFf6YDccMqqEnAKrBsi3DSliukwhI63NDUgmLlWKujbTYXLbwAs9cQ0JjTU+KMNkmGuUj8Fy6qIPPKQNPpaEnDzUAUKZQWqigbH3p3uCejFlwzAAACpZwX1kFk9K5AeEY1BuSSFgWbb2pQczATVPTYnOZQg08dYuTb8QEdgzVBz2Zly4mGB613M30IXviLhGB58pEGXzOEHiqerZaiYsBAACr1hNgFlbCe4AHwkK7OgDTSQuqcAFQjmTOKvjJqjNabC5TuIFnJsCWyPMUC0xWThvDuHuZCDxXLqrgc8bAU9Xdt6jPTRcASsNqeUzHcqxgRlSFAL5j8qWqQmzNCL+ZtCdAMEx4lYyztN7Mgpj0oUsFtt29pEGhydIFHngGqTfLbx5VTm+5sPO+UDm9fASe3ogi+Jwj8FR1MUM3YRZa3wkA8AZBFqaT2J4As6AqBFVhTbydZZpu4pM21BVUizewttxbVqP+SYBQmNRdQwO78U9zbTzVwjbASrxKcM/UyfBu8FsMmeDCjevHyrqYQIZNGdrHVE6vUGqfu8BzW+CNoIPPOQNPVRcAQHksLUsxJWt/FmAW87bZApYv3mN17Z866cm5WjUDs8a6YCyVtXRvAKqKFraeiCTwDNFVXa8mW9jqYgIqp1co3ZF337UF3gky+Fwg8FQaevYEAACsliXAwoyoxgH8N6g3hOetCgqwNSP8VmcciKCEV+V49hwdBzFitiUliFk9As/gHC8mGDTzLzAuWy0XeL4h8PRZUMHngoGnqkfdbgoAysaee5gabc0wI0JPVIVN3PNGpBMVxjYE1WPSRnCtGadVH/QEKzAk9EQ4jA2vve34HCWI8ZDdl+RPF3jeiuk6GtbCgvFWPywm8JO1T+Ttd7sC7wURfBYQeCpt2sPgGgDKwp57mBZtzQAEK+YKppQ9varIRLwXW/8vzA+sAt93wG/D+mPZ/OVQUjeRbKQp8ENqX0YYeKqwximpaci9g/cu8Dx0n7XZE9cbfUnTB/J2ncCzQjT4dMHhXalit6GCAk9Vz6oEWDkBAOVgzz0AZaEVHqpCK8fSukQpSW4LqsfWbkdbndy9wb1lFfi+A34zsk1Vp2/YXzAYLCTwkLaMlgfy5rt9QeVUsuKzwMBTJbSvAYAS0X4S0yLAwsxohQd4z5oNQQVFW2HQEwAAfKftNtlfECjJeI/cdQLPCqtUxWfBgadKRGijAgClIfTE1AiwAASq8189iVdDUD1G4gyrLaHnivQEADCNvqRuEp92m8wdoBxWupL8+UPkz2/BqETwWULgqRLpZG1UuFgCQBmo3gNQFh5EUC09idOatD43BNXR+qKBZ5yVniZlf3EAgKe0+mzwg7y72RUwz4Tipfa5vL0Z4x65QfM6+Cwp8FTJ6J2DGQDK0P+qJwAAIN7njeFX7OtZJYOkIbFK6VACoAB0O0LRqD4DyqUto9+tbwuC5GXwWWLgqfLQ0xp6NANA8frSvcGiEgAAYp4AteldQXUkw3j3YTVpTwAA8AnVZ0CJtILa/kDL6PB5FXyWHHiqPPQ0Q9rYAEDxegIAAOJ+3jCGSs8qsckdiVb9kwAA4Ic+1WeXIgDG4rIK6uFd6axTDBcJL4LPJQSeikpPAChN+rMAAIC4nzeMNKV5GOcekVVkJN5KzxpjVwAFsAmBDBaUVZ/dpfrsEpbQEws6rqCmZXRsVhp8LinwVOzpCQBlYV8kAADG4n7e+I9BvEFalbS+6M8p3oCalf4ACmGZY8T8jvfv5J50OcM5hnlpBfUjKqjjtpLgc4mBp8pDz5pwIwGAorEvEgAAueifN2xL4L+hNCVezAkAKEZ90BNgHtrOlv07r8c2dZiLVlAPdP/OPcHsWp8b0gqne89Sg88lB55qVOn5VU8AAMWyNSaPAADIRP68kZj7ggqI+OdEqzwAhfkL1xPMyIUxqdDOdmpUemJG2s42q6Cmne1MNOTcPHgqm78cSlr/JOng0H3+0X3+UAKwlOBzBYGnykPPzg29WPYEAFCcP+qEngAAKJ43GvLjQVPgL53UMBFXepr0gwBAEfJ7PjCdcTvbdze7gulY5vAxtX5WQa3tbKmgnk3rsOFCzo/uo7Y76SYrPDfc53tZGBqAUoPPFQWeKjn+yBom5wGgOH3p8rAHAMCx2CdokrQp8NfwKO4WxLb2UQCgOD0Brtanne3c+H5hCnZ/1M6WCupZ5YHne9GFq5drE3xeYYWBpzoJPU36swAAimHZFwkAgFOM/UmiljwWeCyJuwVxjfkAAIUilMEVdG9BSzvbeVnTE+Aq2s72zTrtbOfROtyYIvAcI/i8yIoDTzVR6ckEPQAUxsY+sQsAwBk8b6zR4tZTuprb2JgrPfvSWWc+AECBUp6HcbHjvQW578ytPugJcKHR/rjazhaz07060+G0gecYweckDwJPdRJ61gg9ccag3hBMp/VlQ4BJJu0JAAA4wfOGGx8I1Z4+Gh41JWYsSABQOEOlJ86YCGNoZ7sYqvdwkdS+ZH/cBWz++jTbq/P0/p3TIvhUngSe6iT0lK96Akwy5qFgOmkt7nZYOM/WmDwCAOAUnjdc6NmU5uE8D9IokzFxh9Em/SAAUCQWU2CScdPghDFF6wmQ60uaPpB361ssKJjT5sEzN7nflsXEHXx6FHiqk9Czc0NPCgYlOGHsFi24pqDtsMTSNgCn/VHnegoAwCSeN9Sa/PVfjBt9kndsibtrS5p0BQCKRHcH5PIw5vW3DwhjCmYN5xg0aOpKMvhB3n3XEcyudbgm9w60nW1Rz2dxBp+eBZ4qOf0pPfdxRiKvsn7WuFjLhcLZ5sZzlb4jXPvSvcGAHgCAcywVZZI8ptrTIwMhhGaxHoDC0d0hell15x+3CGNKYtKfBTHri7VP5O3Nu7Q7npMWMaWDj1knnmKFGHxe/qzgYeCp6qc+01UiRgi4MGkt62e9edCW1L6WxBLkqNSsuQHcbUkLvzAiCAw+AQC4kLa7MxK7cbVnW7Ba+WRH7M+/LNYDUDzt7rB5oNcWFvnER6s7HxF2lowxdbx0QYH5/RHV0wvQAq90uCvl3aM0+BR5c3NHKi4LPkV+sK1soehDd93RDjn9URt7DTy74qHToWfN/SVTAS7SkET3uuGOmkkEuJy1XQEAAOfVhu55oy7Iqj13CZtWbHDUds84ErWU6msAJclDmaYgHql9LvU/2/KGMKZ02kKaOfzYsKCgCNn+nUvZpi6Y4FO5cFND4l2piDPRTdZ+ghsTACzC1mgRBgDARfL2SzxvsLfn6mmVZ2LocqRTGABQBmPZQisatucCuLvybn2b6rNloYV0VHRBAe2iF6Nj/82DjyJL3doimFa3VXM69NT2E5bNxgFgIe9udgUAAFwifS0Q9vZcMa3yBONWAOVhfjEWO5L8+QP3kyXrZN1CeoLAsaCgED/+vSXpUAPPDVk+gs8VON+kk5VYADA/62cvcwAAvGENk6A5qj1XhSrPERYgACiRtrRHuHTuI7E/yJubbcKYVUlpUR8uPad25M36LRYULKB1uJa1s02SV+6itcrFpgSfS3Y+9EyTrgAA5mNZOAIAwJVqQ9oyHUseZwEclosqz5HaKwGAstDSPlR9N+/xRN7evCuddRayrRILCcOULSgY5AsKML/W4Yakg2W3s70KwecSnQ8967WuAADmY5L3AgAALpdPgvYEak2GgxeC5bn3ZYsqz5HkiAoRAOWixW1YxvsKvl3fFaxejU5jYRm1ss0WFGTPS5iXhot54NkQvxB8Lsn50DPvCc6gBADm8XuNySMAAK5laas5ZqSZ7TOD5TCGiQalVQRMqAEoHff7IOg9g30F/ZNX2vLzqL68lS174y5Oqzs3DzTsbIu/CD6XILn4y5ZJewCY3b50bzDgBADgOqmhxe2kJHkhzcNV7jMTh81fdYKhIdDwd08AoGy036w423M3jK2s8owwxk/WdAXVZdwz0biVLQsK5pfv3Tmu7twQ/xF8luzi0JN9PQFgdikLRgAAmEo+ccaD/Yk1+Zo2t6XK9k5N24IcrW0BLAP3+6o6qTx78+1LgcdS7udVNK6efv3tAzpvLKh10ByFnW2pFoLPEl0cerKvJwDMgaoVAACmZ5lEm2SkJff+ti0onq7+Tgfsuz5Ga1sAy8S+ntWinQCoPKuO2pB5qEqheroweXXnMxce6xi/IdVE8FmSi0NP3dfTshkyAMyEAQsAANOjxe15pvY0r0hEoQZHu0Jb2xO0tgWwVOzrWQknlWePWBhTIfnPinDaf1RPF2nz18eSDj+5j0JYMErwWYLk0l8xQnk8AEyLhSIAAMyGlncXySsS2d+zODopkpiHghP/qBFAAFgeKtH8Ng47qTyrHm3r+eOXXZ3Eh8dS+1ySP25RPV0APeY3Dz66b6o77m1Iz0sEnwWrX/orqbvpJcI3GwCmwYp5AADmoC1uzWPBpIZ8PXjl3u8KFtM63HAh8q7ghI5ZuzeYcAOwPFqJtnmgLW43BB7RNptJW95SdVYp2f6Fcsd9tOXeG5Jo4GkFHjKmI+boibyhcnph2glnOHjhjvmmhEuDT3Hh+I5gYZdXerLyGgCmlxxRHQ8AwKxocXsx4x7o7x08E8xPJ0fSLDzGpCF76QJYCSrM/UGbzappfdnIqsA2Dz6N9i9sC237/XXSKvoBraIXdLxv5+BT9nwUPio+C1K/+pdZeQ0AU9hnIAMAwBx0oSXVHxczsu2+N31W+85BJ0i0TTATgmfYnrxb7woALBvd5HygYae22dylxWYFnK3ohP807LSyQ5voAuRjed23U/fsjG3bDyo+C3B16KkrrxMh9ASAq6SWKk8AAOan1R+Enhdry72//SZv/5MWrbMg8LxE0hYAWIV8kVNPuDavAmFnVRB0VhNhZ3HOhZ3Rtm4m+FzQ1aFnvb7vDjS9IcaWqAPADGjNBwDA3JL6bvZwyzPHxUztmWz+ckgLuind++WFmyAhRD/H9tzECccQgFXSaxDVnstD2FkFGnQObEuS5KGklrFwlRB2Foew8yIEnwu4OvTs3OjLvYP9SHomA8AcaBMGAMBC9Jlj88trl+49FFzC7sm9v92g4vMaGngauyU4zyRdAYBVSgZ7ktYJPctH2OkzDXeGRy7klDtik1YWdCZGCHkqhLCzOK3DhgyOtl3Yqc+BhJ3nEXzOqX79b8n29WwKAOA8JpAAAFhcavbc5A+h51Wyis+Db3jovUA2gTh45QLPpuBi5ojjBsBqdf6rJ/cOuhRWlIaw01etzw1J/+2+2NSFnIOmGDPKdgh4KoWwszha4TyUp9n5QOh/HYLPOVwfeta+6rgD8JnQbgoAzhta2oQBALAonTxgInQaPPSepSvEUw082Rf2UsbsZWEDAKycfU1hReEIO32ji7FksJG3rTX38/05U3foC6qIsLMYWQvb9GEe/rtnPs6HWfAMOKPrQ09a3ALAJWhtCwBAYXQygWeOabTd89mG/F5/JN0bcU9utg43ssBTdDIRl6LKE4Aval/tueu2trilsGJRGsToohb2/PbDqWrOoS7EGrWtRUX13fnVkaP0ufzv+r5gfq0vbryu4b/u12nXCDvnRvA5gyna2woTEABwEVrbAgBQHF09vXmgkwpU7F3HSEv+Othwod9d6dzoSYw2f33sJk/awsT51ajyBOCTbB/vg+fuI/b2nBdVZ37QqrXBv5pZ5fK5ak5adVYYldNFOFvVmeG8KADB55SmCz3r9X1JB3qi80AJAGMmfS4AAKA41j53Ic0LwTS0resnufe3J/L2P3clFtn+ncNnbmJxS3A9qjwB+CYZ7ElaJ/SclS5i0e11CDtXY7JlrTG3870IE0EobM+dZC8JOxeke3XqOZIOH1LVWZq2e/77LarnvzlMF3pmK7G+vHQn/2MBAEg2IOrQ4gIAgEK9Xd9zzx1uItQ0BNMxtWdy75fbUqvtBF/1qRMp6eCFm0BpCK5HlScAH+l1iX28p0XV2apcFHIqWtaG5bhymq2r5jYOOpPkoaR21NaZqs5SmdpTaR7uRb/VyRWmCz1VajqSCKEnAGSStgAAgOLlW2tQ7TkLY7fcZFxL7v1tJ8hVv63DRlbdmboJFUyPKk8AvmIbrev0szmH5B8vCTuX5HS72jtuXJVvt0DIGSYrHfd6TuX0nAg6V21Nvv6/W+6das9LTB965nvs0OIWAFRy9EEAAEDxsmrPA11syd6es1nLqj6z751py5tvX0rVZfsBDXTvzm0X7PIcOguqPAH4TOcYqfa8irvnpduSft1398IP0e7fXabWlw1Ja3fEDDfEGu0k0aBdbUSMtNw/+vLjgRB8TiHbXuLIhZxyR2zSIuj0QJLcFlxq+tAzx2bjAKDtL5hEAgCgPKk8cQ/V7wXzaLjBigbH7cqGn5NhZzbxy4TKbGxPzIAqTwB+o9rzOo3sfp4OJA+IzZ4ktdfZFmSYTetzQ4a1pjvmNrJWtcZsZKGNG3C6wFMQKe2UYmTLjZl77jjoimXP3GOT7Z3Hlc/GjIbkjMu9YO3PgkvNFnom9V13kBN6AoibPmwAAIDyUAFShEblws9xq6x0+FAIO+en7dpYoAfAd9zrp5d9j2zzTABKBehZWVBz5AJOF26eDTg12zzONxlf4JRG9AHoZHtn9rCthsR0BJeaLfTU1UQMSABEzfbkzc3qt4sDAMB3VIAUpXEcfvo4iZNVdaYPxaYu7JQmrbIW5caqb9fZ3wdANXCvn91kAHoc0AxfS/3f9qMJQSfDTWMbYhMXbrqPtUWtJpsEnJjfZACad3oz6QdJk24wIei4ijPV84b2zpWU2ufyZn1fcKlZ29syIAEQN+MGOgAAoHw6sbB5oNtrPBYU4fQq9tS+dgObzkomcMb7aGVB52glOQvJC5K0BQCqgmrPRY3u7cnWSQgq+y6k+SkLaer1XmWD0CyY+eeaDJINSerfSzq8JcZ8fy7cPH4HSpBdm5KmJPL0OAS19idJap8kdedZvb7vbcvp85XPE+ePor1zNdl9ebe+LbjS7KFnPvmgJ/OaAEBszBH7IwEAsCxJve0ezEetTlGghiRGw+THsvlL303e7B+vYi96glT30dIJy7xdlpts0dXko320mGcplrY7fF3BPVwBxI3iiiK5EFQ7PCStLKTJgtDRfV6kn4Wh1vSyV33QW1kr9ONAs97IKjVN7Zss1KzJN+7v5sYMspYHM27aOis+S2mzCT/otUrHstkx6T7PFxvsu+tY/yQMHfzsfrFf+jmmY2ypufNIzyGzlp9Lbqx96hw6W/mManPX8uTPu4JrzR565nTFNXt7AohM+pr9kQAAWCJdOf3jL48ksa8EJcn2uWoer2I/O0Fq7c/u+9/PJkiz3+4+1okcpZMrYzphKYMb2WRLqhMvokHnWhZwnuqWRZu5kvRZnAegkrS44v5Bx90eWoISjO/zyoWh4wAkrUtWuSamn7VG19BG7yV6zx/Kb9l7pn4odvjbVP+pU+MCNx5QOibQACYLYzONbKxxHGhmf5k81GSIgGrayM+rcRg6GviePsfcWFp6o9/fPzm/RnS8nf077nzR8H/SyTmUv+v4Ws/rdPTrxwsCOIfC5q7TyfCBdG75WVnsmflCz6S+625QujKYFdcA4pEm7I8EAMCyvfu2Q+u7ZZuYIDWj2dHj+ZTJpeKTH+vMS5JPtrCP1vJZu8PiPACVZQZPxNabwjzjCmj3hVFok31qJsJIlZ65919l4vfZ818C4mTPBv8XtJUdfa7nnr34lyb+PEFsssDzLmP96c23Q23Wq9rSNgdARNwNJpRNywEAqJra4JGIsKoVuNi+vF1ncR6A6soncp8LAACYQOA5j/lCT5WajgBANJK2AACA1dCHPK1kA3BWX5LBAwGAqtOucjq5CwAAhMBzfvOHnlrxZKUrABA8d5N58y3V7QAArJJWshlh4SUwiba2AEKhXeVS80gAAIgegeci5g89lRVWWwOIAO28AQDwgqk/ogoEGDGmQ1tbAEHJt5ShzS0AIGJ2X5I/fyDwnF9dFqGDkXsHXTHSFBSpL+f3LOq7kPn8PkaTmyDn1oSN34FiJemeAACA1dMqkB8PHkki7wWImgv/zeCJAEBoknpb0qP7bsKrIQAARCULPO9K51ZfMLfFQk+l1Z6EnpfJw0srPUncQ6mV39w3zH1uetmv6nvdfS5D9/pnv/CDufXJhZ9/ca/amgyMe3cvk7qXbeQfm+8ldQGpyUJS9zXCUuAcY/ZYWQMAgEeyhZdfnrh79DMBYqUtIN8wRgUQIBY4AQBilNqX8m59S7CwxUNPnXTY/NKLeAVWz4WG+2Ltzy5c/OQOzp+lnvZE/uytPJHP//vT/x2ykPTfG1lAmiS3XRh7KwtGbRaIbggQI3NEG28AAHyjLT3vH9xx49SWANFJd+Tdd10BgFBlc40H2ub2sQAAELxsfN8WFGLx0FPl1Z4vJFwaHLpw07pws7afB5tH+8FVf+Uh6f7os+65X2992TgORE3aJAxF8KjyBADAX7q/pz3aoP0doqL7eL5mQgRABGhzCwCIggs83zC+L1Ixoefb9T3Z/PI0kIGItqPddwHnT9l7zb066/sCmfg+dGVyY/ksDE0akmgQalwgmgWhtMpF9VHlCQCAv7T9XevzXUnrH4WxJ6LAPp4AIsJ9HgAQNpdD2Sfy9rs9QaGKCT1Vdas9tYKzm1VwJsMPBJxzyL9n+uocf02D0KELP7P9Xl0QSkUoqoYqTwAA/Kf36h9/eSSJfSVA2PruefUu41MAUdFr3r0vO+zjDQAIi+1JIg/IospRXOhZnWpPdyDZD5ImXan/3l35vpuhOglC97LPdb/QwdfNrBpUzB0hBIXvqPIEAKAa3n3bcROiT5gQRdDS9JG8IfAEECHdx3vzoCHs7wkACILV4rsHLGYsT3Ghp0rNI5dQvxe/9NyB9DpvVftnh5BzRfLve0fG1aAnIWjLfXaHPRrgFao8AQColnxCVFvfPRUgOOmOvPuuIwAQqzc3t+Xewe28mxgAABWV2udS/7NNRlWuYkPPdze7bhDSXfkgxIr7OyQdSf71muDCU+dC0M8NGdaaLm16yCAWq5XtlUSVJwAAVfPmZlt+/NKQxI0ngWC4wPPNd20BgNjVBo8krb1n0TwAoJJ0/85367uC0hUbeqp8b8+mLFdfjO1IKh+o5qyoPJzey15UgWKl7EsWSwAAUFHv1rfk3sH3LKJDEHQl+DsCTwDI6HN66/NdSesf3WdrAgBAJbB/57IVH3our9qzn4UTqelk/02E42wV6I8HLgC1W0IAitK5mxAr6QEAqLZa/YGkA91ygz3kUV2pe9Z9t74tAIATWfD5xQWf5qMAAOA747Ir88cjivSWq/jQU9Xsk5IGIASdMcp/1t3sYwJQlCppCwAAqLbOjb60Du8SfKKy8sBzSwAA52mlzL0vj9xE8gsBAMBPfbF2R97cpJ3tCiRShrxU97kUo5/t0ZnKXUn+uCVv1rcJPCOmP/s3bgLgzfotF34/yEJwoBBa5fktxxMAACHQ4DOp33Uf0UIIFWP3CTwB4Bpv1/eyvdEAAPCOtrO1d929isBzRcoJPbM/ud6WrDJzThp0SrKdBZ1vb97Nwi7KgDHp3bedLABNBrfcYPdRfswAc0rNIwEAAOEg+ETVaIXnm/UfBABwvXwyeUcAAPBFap9L8ucP7N+5WuWFnjrJMHu1p7avfZ5VdWrQ+eb/eU7QiWvpng66yk+PGQ1As+pP2xNgWsbsUUEOAECACD5RFbS0BYDZvbnZFoJPAMDKuSxCM61369vkWatXXuipssHHFOHTZFUn7WuxCA1Ax+1vtfqTCS5MwxzxkAQAQKg0+Hxz84csVAJ8pCvCCTwBYD4EnwCAVRpXd5JpeaPc0FNd1TLSSoeqTpRGqz91giuxP7D3Jy6X7mRhOQAACFseKjEpCs+4saiuCAcAzI/gEwCwdFR3+qouZdOE+/5BxwWcrdFX8ra3yR+7MR0MtiUN97bmXifvxr0b+Sb/DcdfX5v41xoym76c7KPay/5pRl+z8pt79Udf741/j+kcfxyuvIf2lrQ+tyWtb7lv9kP3jWkIoDenN9+1BQAAxEEnRTcP9KOnAqyatU/k7Xe7AgBYnN7j733piTEvBACAMml1Z/3Ptrwh7PRR+aGnMvVHYo8a7oPXoYado1Dz5JXI9y5k3JCToPOSf1GKNBmaNs79+eb8v2AfZG+97KUBaSo/uY8P3UvfwwpF82q+dva692XL/f8+JfyMXOommgAAQFx0UvTHX/YlsTopuibA8rnnrvSRvPuuIwCA4mjHr9aXfUnNe+EeDwAomm7TWHPzyW/W2VLPY8sJPXUfHZEfJACjcFPDzO9dsLkxCjb1a6cHU8WGmWVrZC/9O5vjityMC0Xz6lAjvVEgqie0hqHVPrF1ICyyR/gZMWP2mGgCACBS777tSOuzmxStvWcciOWyPUmGd+UN2ysAQCm021fr8w/c44HS9N1caneiqyMQg75Yu+MyBbq0VMByQs+KGgWcTXch12Dztshx5eboN0gM9P83D3cnAtFRGKrB50/ZCoeqBqHj8PPHg2YWfhr380YE3GSTGbDfBwAAMdMuIK3Pd8XWnzFpg6XIVob/+YA9fwCgZON7fFp/JflcHoDFuLGLfSmpm/3VrezUvS/bYswzAUI3bmXLGL4yCD1HXMCZh3sabiYu+LJZ+EUrjMvp96YpeSj8WL9wHIRa+eDeu/qxuxVW42KQ37C7hJ+xSNyNar0nAAAgbvn2Bw9k86At7POJUqU78pa95AFgafJ7/A/uHq9VOY8FwOx0wZZNXeDz/3XPBT5a8db60pVUXlFVjSBlCxYHj+jQUj1Rh54u6Gy6gPPOKOA8qeKMo4KzDHkQmgeG2aSRC0K7kleDdlwA2hXfTYaf2T5PpiEIi7a1ff3tSwEAABjTfT5bXzpM2qAEfXdcPZB333UFALB8b25uy70vPSrSgClp0GOSjiT/eHltZVveTpqqaoQlC/tl57iqGZUTVeg5ald7f9SmNQ85CTjL1pRRNagLQJVeNHQfxQ9et8PNL2q32PMzNLS1BQAAlzietKm13djvoQCLYnU4APghq0j73GGfT+BSPfd6Kclgb1QlPb2Tquq20DkFlebmjbU74FuKZaou+NAzq+bMQ8777tUQrNq4ElSrQHvZxtepvHYBaEd8NN7zk/AzELS1BQAAV8gnbbbc2K/L2A8LsfZJNskOAPBDts/n4Q+SHu2yuAnIaBXnczcv2y2kok07p/x40KVzHiooPxeSP3fZtzMMwYWex3tzJvJQbBZ2si+nvxruZ6Rh4lZWBWpEW4pp+Pnau71ACT+rj7a2AABgWjr2a33uUvWJ2dl99yz6KKscBgD4pXND55pY3ISYuXPAvpTUzbyW0bpT/0w6p6A6RmHnH4SdgQki9Lww6KRtbfXozy6vys33ArUuZPQtACX8rCja2gIAgBlR9YnZ7cib9bYAAPzG4ibEpdyg8yzG0PAfYWfgEqkwbV3rwrFddwH95F7vs6pBKjtDoW1w99zr0P63vHA/65b4RAfIb9ZvibWP8n7f8FpqHs28JwEAAIDScV8yvJtNFgEX0b07E/tD1tYNAFANOkfwZn2LeR0ESoNObV17141PbrhjfXspgeckxtDwTnat33Fh561s3E7gGazKVXq68KsxqujcFgLOOJy0wB3vAfrcdMSPdlGTlZ+6OnC0Xyk8oRNQ2tb23bddAQAAmNd4xXrrc1vS2ntWrGOk7ybLd9i7EwAqjKpPhKPnJsJeL62icxpUfcIH4/nhNzcJ4CNRidBz1L5WW5/q4KNJ69poTe4Buu8+1smFD+5W3pNVG4efrc+N0UD5vhDKr46Vjns992aQBwAAwpBP3NxiqwNkEyfm9yesEAeAABwvbvqyK6m84v6OysjCHPngjtuu13Ng2eKCw46kAy1ieirAMths+7wd5ofj43XoSVUnrrCRtb917H+7d1+qP48Hyp/WZPjvLqg3j0X/rliGnnu9pB87AAAo3Um3j203Jn3M5GhEjidP6CQCAMHprOu8Eoub4Lcs6Ew6kvzrdaW2curc0Lm6trQ+71FZjRKN9usc7LHVWby8DD11r858cEFVJ6ZwUv2pExB7Lvxcfal6HrrtZa/Wlw0Xympwf4cBc+GWuxk7AADAJG1r2vrckbS+5cYkDxnrhcz2sn3iGXMCQPiOW97q/Z2qNKxcX4x14035ILU/O5Vf6D8uGPnxYE8S+4LxMwpxvBjgHy8phoE3oeeoha3uibglVMZhPhqWN1342XYXurb40vo2Xym4lX3840HT3dD1YwLQ+eWDvaF5KfU/9rmRAQCAlconbkar1gk/w+PCTkna7AEEAJE5dX+nKg1L1/Nuf86i5f9fVFZjERTD4EIrDz2zsDORx7SwRYEaZ1rf7ngRfqr8AtzNPiYAnQVBJwAA8Nt4clRfTN5UX7Za3OwRdgJA5I63MfrcJvxEifpu7LFfyba1izrZNoLxM6ZDVSeusbLQ81TYaQk7UZJx61vfwk81GYBmLXBrd8SmLa1WFVRnM3agKP2/MFADgFCMJ29+/MWN7exjxncVcrxnJ+NPLA1jQKAKzoef94XiDSwim/eyP1GlNjIZfuriAsbPOK3nXi8l+WOXoBPXWXro6cJOrcJruw/vE3ZiaXwOP1XeAldfz6X1aU0G/7EhiTtbrLkd0U3e/f/bD9nKthD2KMD8rDs/jbtXxKUv3Rsc85iBtlvEAvR8i2scamsfBcv37tuO+2fHTZA28glSOnx4itZYXtAFYAOJjiX0LJVNtGuQRMdajquynISfDRnWmlSmYQZursN2g9mbsyzHiwfHHfKoro4YY3TMxciSTISdXKiwesbT8PMixyFo4gLQtOkeXjYCGFC7B89sFf1PWSVnxVrWZtezkUocQ1WzedB2/3wqMdH2ea+/fSSYD8cMZrX5Zdd9Ex9LTJLBrajaZPlMqz9r9qEbB7UEq0VrLP/cO3gfX2WH2ZI339JGuSytwzVJB58ktsVO3PeXi8o0XCzfqsnW9qNrWVskFg/Gphf8frYoXemhJ3t2wmtVCj8nTQahMrw1qgh1Yah355hOHulKtv1skJfan6V+tF+1gV52HdMFGyabnGxe8Fs0wN1zxxGTFUXIJiaOPkY0mO27SYkfeABaQHTHjO1JMrzLMbOA7MG5rpWPkYxN0x15811b4JdxhQiTpMum49PnbKHgqWzbD/Neork+u3v6m/VbgnLd+7ItxjyTaHDfXxnCmdgRcpaNBQZhYoszFKy00JOwc2b947Y2ZhTAmezz6VYc24lWkHnb4DX37+fvuF5Vw8+zNAyVf2/IIGlIYr7PAlHj3tNTx0NDitHL/qmtSBP3sG7lN5HaJ7HD36SmrWr/7IWwYt7+H3cdS7Mq9WnOJf0+tAk/C5A/LL4P/0FRwyt5MGpxjUVEdcwQeBYilmPG2ifydn1X4DcC0LLRGqtKsuBTXoV/fXYTe7XBI+7pSxJLZ5DUPpd369uC1dPODknaojVn0Cba1Q67XM+XKHuW+7f7bt5zmwUGldTPtjej4wpKUkroOWNIELp+Hgq5EznVUEi0rYq+90av0ttjjqrUGiLHoZcLw+SW+zt9PwpIfawQXAVtubrrfk4vo2hZqgOETG1NBubqn39d9wMZjm5A/+zHcDNy581WvjfHHCGxO47M/8gTweKyPRzSpoTImh77eJQgm1wYbkiI0oRVj2UI9pipH/IAWVFZR4+vm/lEKZUic2PFePVpNYexDQkR9/TVOJ4kH9yQ4Lj7/mD4Qf6XxZTe0fv68N/deNPcp7V9pY1CGvtTdg2v/95lnO2JfLHUlvvoPuNmj2Vjcz1/3Kx7xbY5Q/UUGnq6kKDp/sQXUlwlWVVMBps6wNRQU9977jSu0j6FOuHXEA1BE7kdcSDaG1V+xhF+4pSFws5J7hhywSf77QEAgMXoRM5Qx+fZZGlTWKx4mV62/49OSLKoCADgo9MBaFO4p/ssr+LMWtUOP9CdqSKyANTN7EniAlAJczF0dbhzxn5gkQBWoZDQ011KGqOwsynhy1f2iPwkebDZDT0YOxWGGl1tHk0QSvgZkcLCzlN/qDxxx86uAAAAFGUcgmZtcM1tiXNCJ983XidSCDkBAFWVdTbSgMaM59qwGicBZ5r+RBVaIMbbR7DIYBmohIZXFgo9o9i3Mw84P0gkAee0sqA7H5A1RdtumcAHZ6Hs+YlTlnAN05v+rSpVfAMAgIrJ2uH+x4Ykye1sP3frglAT1CLFk0mULOAMZ+94AACOaUAz+GpjtA9orIuaynayaEpqn7IKTsYU8ciqQGtuDjttEoIuTMfm+1RCw1dzh57BtrI9CTm7koec3PimMNo3VAdkLXdc6OCsKSE6qfzsCiprqQs2bBaWtwUAAGCZToWhgxti3Hvqxj1+BqI90YnIbPJEfiPcBABE7/g+rgFNciewBU1ly8PNcSiT2p+lfrQvnf/qCTBG95RpsPgQlTRz6BlgK1v3cC0dNwGgQWeHkLMYoxC0KXkIqm06GhIWnZDZdcfLS0FljBZraAvbpixPz7ySWwIAAOCTrKKk3nCPhC4ITd3LNrKvG/N99rV0YmLVzDyW1wmS/Lkqsb3sXcNMse7rpucmb/tST93Xh30mIAEAmJKGNIOkIclwI1vMZI+7sMVoIthkwRQKkrWcDrZ7ylV0izd3LtmfsypoFgqg4mYKPe3/kcfu4bctVT/ZbbaSWMOqLhV7yzHaF7TlXvcDa4WrN4UurW/95UUb7rzFbU8AAAAAAACKNBmG6sKlPKwZd2Srqp5MdoE4DmJ00RTBJpZoXHWt51a24MB8L6lpjBYFNsR/fckXJPayxYgabB4vQiTYRJimCj2DqO60Wbip1Zx7hA+rNdoPVCvuHkpYbXCz6k/3/oFjbLWO2y0vv6rzYlbussACAAAAAAAs1XFg42hXh6yzg3Z50OBmtDD8pKNDQ4rXH73GRSgTXSC0qqx+KHb4WxbC1Afu6//sE2iiUvQck39vyMDknVNM7Zt8a4kz3VPyhQjjYozJj6dxch6pc+fSREeV7HPOJ8Tt2tCz0tWdJxWdBJ2eOg5AxR1nIVWA5i2TO+6j17RMXp5R+1qtKNZA3Z9rlpVH7jjYEwAAAAAAAJ9lIc5fTs+pZC3xL5GFK2dQPQYAWJFLQ88KV3dqubYGnR0qq6pl1AJ3O7A9QPuj9rcEoCXxNuicRKUnAAAAAAAAAAClujD0rGR1Z96+9rnk+3QSLFWcC7JakrgQy2ZhVki67v9pT2iBO7dR61o9Pu6Mjg//r1NWfnA/730BAAAAAAAAAAClOBV6ZmFCIs/cBP2WVINWdWrQ2SFQCNOo/a1Wf96XcKo/x/SY/eCOYa0C3Sesv1xWzZmHnE2pXvV5z7ySWwIAAAAAAAAAAEpzOvR8IB/dm//7KuZVnRoUvSQoiocLvrbcEastTJsSpq57/RR7CDqq5NTr0O1R21r9uHp7Co8Z2TP/I48EAAAAAAAAAACU5jj0tP+dVXhui8/ysHOHvfHillX9yXEAGrJ99/+4L2lWEfpTqMf9qJpX9+XMg86qh5xnWblFK2MAAAAAAAAAAMqVhZ4udNhwH30UXxnZc8HPS8JOTBqFZe0Iws9JGoT23Pnwk+TtcXtVae08+nlpoPm9JO7dZh/r18IJOM+y8tz9fPxeTAIAAAAAAAAAQADy0POBvBcfW4bmYedOjFVSoxafZ8OgxpnP+6PX8ecxtkSNNPw8q5e98kD05+PPR8dI2efQxPHaGL2+yYJN/dpJuBkb9vIEAAAAAAAAAGBJTBYYGfkkPgk07ByFcycv4wIh48Ihe/w1keLCoZ6MQ1HjXtYFYTb7vDf+tapUCE6L8PNa45C8l31mzoTmVn4bHSMnxsfoJHvuWG0Iztp336cHtLUFAAAAAAAAAGA5NPTUvRFfiA8CCDvPtfD0v9KtN3r95P6en7L3igeihJ9YKSvP3T/bMVZdAwAAAAAAAACwKhp67rpw6LGsks326nxStaBtFK413fdPQ83bIqOQMwwa2OjP46fRz6cye0eOEX5iqfLzZIe9hwEAAAAAAAAAWD4NPfdWFgpVKCQY7VmYh5uJCzpttgdqKAHntPIg1MoH996tSrhD+IlSEXYCAAAAAAAAALByqwo9ey4o0PaPL8Vj7nvTdAHnnVHAGVIVZ5G6VQlBCT9RKMJOAAAAAAAAAAC8oaGnhkBPZTn6o/3udn3c725UzdkaBZ0tIeScVd8dS11JpeM+/uDr3qyEn1gIYScAAAAAAAAAAN7R0LPlwp9XUrY8KHjkWxA2Cjofuu+BhpxNQZG0ClQD0Nc+BqCEn5gJYScAAAAAAAAAAN4yWehn5JOUV9WorWyfuKCgI54g6FwJ3Qt0VzysACX8xJUIOwEAAAAAAAAA8J7Rf5TW4jZvZdv2oZXtcevaPNhqClZJK0D3JK8A9abN8Sj8bI7OhYYgZl634gYAAAAAAAAAAKeNQ8+iqz21uvORD5VR7v+tOaro1LCTPTp9Y1z4mcpL36ro3HGzRUAeobyqU6vSXxJ2AgAAAAAAAABQHWb8wSjkeSGL8qC6k/a1laRBeVs8a3870fr2jlD9GSqt6nzp3ju0sAUAAAAAAAAAoJrM5CcLtrldeXVnFlAlLuy0si1UdVZV3x2DHUmzPRR74pFsYUAi993x1RJUH1WdAAAAAAAAAAAEw5z9wqjic7Y9DVdc3TlqYat/56YgHP62vm1Ifqw9dn/HDUF12CxI16rOPd9CdQAAAAAAAAAAMD9z0RcnWno+vPLfziuldlYVShF2RmPfHWu77jh7KZ4ZnSv33WuLANRbtK8FAAAAAAAAACBw5qpfHO2N2XSvDUnk++yLqfzm/vnJvV6vqlIqC5ry/Uebgphk+376GH6q4wCUvWRX76Sis0vQCQAAAAAAAABA+IxUzCjwfC+ztN9FaLwOP9VxC9x8D9CmsMds2bSac1/yPTpf07oWAAAAAAAAAIC4VCr0JPDEGRp+PqpCJV/Wilmydsx3hCrQYuTVnK8lDzr3V7WnMAAAAAAAAAAAWL1qhZ4PssCzKcAk40KvVJ5Upbpv1DZa9/9sub/7beGYnk5eyflBJK/oJOQEAAAAAAAAAABjlQk9XVC0NdrHE7iYkT0Xfu5UsbXpqBL0tiTuPc0qmjckZlrFmbhwM82qeH8SKjkBAAAAAAAAAMAVqhN6PpCPIpEHQZhOhcPPsYlqUK0EvTWqCNXPQ9sbtD8RcGoF58/u1SXgBAAAAAAAAAAAs6hE6Dnay/OTALMIIPw861wYmsj3o8rQhvgbiGqw2R8Fmxpq6rms7/sh/WwAAAAAAAAAAMDqVCX01L0PX0m48lBIsmCol72rPCAa613y7zYmPl5z//437s/Kv2azMGxNwqsOnFXXfS80/OxKwEaBaEPk+P0b97qRBaP6NTt6jY8Hc+rYmcX4eNU/o+de+bGbym+SH7u9ifceVZsAAAAAAAAAAKBsVQk92+5v+lSqa7KFpwZD+5KHQtn7MkIh9z0ct0ZtZK9EblegQrBoPfdzaLvv90vBOVlF9cX6BJcAAAAAAAAAAMBnhJ7F67u/a3dUpdmVCrTwHAWiDdG2qRqG2uPPQ5WFn+79A+1VAQAAAAAAAAAAqq8qoee2+5s+Ex/ZrFrzg+RVm91QQrRRq9Rm9jLZ/pFNCVG+7+dz93Pbn/HfBAAAAAAAAAAAgCfY03NWNgs1X7tXR/Iqzijafo5CUK0AbbnXHffz2JCw7Luf7a57f00rVwAAAAAAAAAAgGqpSui55v6mh7Ia/VE1p4acr2mHmhvt/9iURO67709LwqHtiTuSykv3s+4KAAAAAAAAAAAAvFeJ0FPZB/JeltdidRx0vnSvDpV/18uqcSWryL3v3tckDL1R+9uXhN0AAAAAAAAAAAD+qk7o2cr2lnwvZbJZZZ9WdL4k6Jyf+1ltBVgBOm5/+4EAFAAAAAAAAAAAwC+VCT2VC9N23d/4sRRLqzqfu/ddgs5iHbfANfLUvTckHF13zOwJASgAAAAAAAAAAIAXqhZ6ro2qPTdkUXlV5w77Ni5HVqkrsuV+fg8lLNoG+YM7njocSwAAAAAAAAAAAKtRqdBTLRh8UtW5YqPqz+3R3p8NCYvuAdqVVF67j7scYwAAAAAAAAAAAMtRudBzzIVn7VHb1GkQdnoo2/szvNa3k46rQPVjjj0AAAAAAAAAAIByVDb0VMdVgyJ33P/J2cpPDTo1dNKwk6o7j0UQfo513eunUWtljkkAAAAAAAAAAICCVDr0nJS1vT0JzfouUOoJKiWi8HNs3/3/9iQdhaFUgwIAAAAAAAAAAMwlmNAT4Ygw/Jw0DkKzENS9ei4I3RcAAAAAAAAAAABcitAT3oo8/DxrMgztjV9Vq2getaRWfapaAQAAAAAAAABAUQg94bVR2+Jtd6Q+FMLPy/Syl8n2sf3Zvfqjr/UnX2UFpBNBpr6vjV4N9/dZc69v3N9n4/hrp/Xdr3ddkNtxf7eXAgAAAAAAAAAAMCdCT1TCKFjbIvwsxDgIPfvxdcaB5lhDitNz4Wib8BMAAAAAAAAAAMyD0BOVQvgZOOOCz/+RHQEAAAAAAAAAAJgBoScqadT2tsWenwEi+AQAAAAAAAAAADMi9ETluQB0i/AzMFaemI7sCgAAAAAAAAAAwBQIPRGMUfipbW+bgqrru+Dzlgs+p91vFAAAAAAAAAAARCwRIBAuINszr+SuhmXu9VJQZdq+eFsAAAAAAAAAAACmQKUngmVbWbvbJq1vK2vfhdg/CAAAAAAAAAAAwDUIPREFF4A23du4/S2qwsoNWtwCAAAAAAAAAIDr0N4WUXDBWde9tkatbx+5L/UEVbAhAAAAAAAAAAAA16DSE9GaqP68I7S/9ZOVuxpYCwAAAAAAAAAAwBXqAkRqFKbpSwPQliTy0IVsLQEAAAAAAAAAAEClUOkJTHDh55p70wD0PgGoB6z84MLpfQEAAAAAAAAAALgCoSdwiTMBaNN9vCZYpr55JTcEAAAAAAAAAADgGoSewJTYA3TJjOyZ/5FHAgAAAAAAAAAAcA1CT2AOLgDdcG933BmkLXCbguJZuWU60hMAAAAAAAAAAIBrEHoCBRhVgbbcGXVbCEEXR5UnAAAAAAAAAACYAaEnULDRXqBaCdoctcLVj9kPdHo9sfKD6UhfAAAAAAAAAAAApkDoCSzBqB1uHoSK3HZn3obgIhp43qWtLQAAAAAAAAAAmAWhJ7Aio5a42g731qgtbtwVoUY6ksojKjwBAAAAAAAAAMCsCD0Bj0y0xj0JQ6003HtDQmWl6/6548LOrgAAAAAAAAAAAMyB0BOoiFGLXA1FNRC9IUkWiK5lrzwU9bdK1Gbtavvu77wvqfzmPv7kXj+7V5fKTgAAAAAAAAAAsKj/H4+W6H2eZOe5AAAAAElFTkSuQmCC" alt="SeaMoney">
+  </div>
+  <div class="topbar-tabs">
+    <div class="topbar-tab active">funding</div>
+    <div class="topbar-tab">settlement</div>
+  </div>
+  <div class="topbar-right">
+    <div class="user-avatar">👤</div>
+    <span class="user-name">ziqi.xu</span>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div style="position:relative;">
+    <div class="sidebar-collapse-btn">‹</div>
+  </div>
+
+  <!-- Routing Management -->
+  <div class="nav-group">
+    <div class="nav-group-hd open" onclick="toggleNav('routing')">
+      <span>Routing Management</span>
+      <span class="nav-arrow" id="arr-routing" style="transform:rotate(180deg)">▾</span>
+    </div>
+    <div class="nav-sub open" id="sub-routing">
+      <div class="nav-sub-item" id="nav-clawback" onclick="showPage('clawback')">Clawback</div>
+    </div>
+  </div>
+
+  <!-- Lender Management -->
+  <div class="nav-group">
+    <div class="nav-group-hd open" onclick="toggleNav('lender')">
+      <span>Lender Management</span>
+      <span class="nav-arrow" id="arr-lender" style="transform:rotate(180deg)">▾</span>
+    </div>
+    <div class="nav-sub open" id="sub-lender">
+      <div class="nav-sub-item">Lender List</div>
+      <div class="nav-sub-item active">Lender Detail</div>
+      <div class="nav-sub-item">Routing Configuration</div>
+      <div class="nav-sub-item">Calendar Management</div>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-hd" onclick="toggleNav('report')">
+      <span>Report Management</span>
+      <span class="nav-arrow" id="arr-report">▾</span>
+    </div>
+    <div class="nav-sub" id="sub-report"></div>
+  </div>
+
+  <div class="nav-item">Whitelist Configuration</div>
+  <div class="nav-item">Alarm System</div>
+
+  <div class="nav-group">
+    <div class="nav-group-hd open" onclick="toggleNav('ticket')">
+      <span>Ticket Center</span>
+      <span class="nav-arrow" id="arr-ticket">▾</span>
+    </div>
+    <div class="nav-sub open" id="sub-ticket">
+      <div class="nav-sub-item" id="nav-ticket-detail" onclick="showPage('ticket-detail')">Onboard Setting Change</div>
+      <div class="nav-sub-item" id="nav-ticket-batch" onclick="showPage('ticket-batch')">Batch Clawback</div>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-hd" onclick="toggleNav('abs')">
+      <span>ABS Auto Report Manage</span>
+      <span class="nav-arrow" id="arr-abs">▾</span>
+    </div>
+    <div class="nav-sub" id="sub-abs"></div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+<div id="page-lender" class="page-view">
+  <div class="breadcrumb">
+    <a>Home</a><span class="sep">/</span>
+    <a>Lender Management</a><span class="sep">/</span>
+    <span class="current">Lender Detail</span>
+  </div>
+
+  <!-- Funder Info -->
+  <div class="section-card">
+    <div class="section-hd" onclick="toggleSection('funder-info')">
+      <div class="section-hd-left">
+        <span class="chevron" id="chev-funder-info">▾</span>
+        Funder Info
+      </div>
+      <div onclick="event.stopPropagation()">
+        <button class="btn-edit" onclick="toast('Edit mode')">Edit</button>
+      </div>
+    </div>
+    <div class="section-body" id="funder-info">
+      <!-- Row 1 -->
+      <div class="info-row-inline" style="margin-bottom:14px;">
+        <span class="info-inline-label" style="color:#6B7280">Funder ID :</span>
+        <span style="font-size:13px;color:#111827">7641062</span>
+        <span class="info-inline-label" style="color:#6B7280;margin-left:60px">Funder Name :</span>
+        <span style="font-size:13px;color:#111827">TH_BCL_IFC_ABS_01</span>
+        <span class="info-inline-label" style="color:#6B7280;margin-left:60px">Funder Scheme :</span>
+        <span style="font-size:13px;color:#111827">ABS</span>
+      </div>
+      <!-- Row 2 -->
+      <div class="info-row-inline" style="margin-bottom:14px;">
+        <span class="info-inline-label" style="color:#6B7280">Create Time :</span>
+        <span style="font-size:13px;color:#111827">2025-03-10 19:07:08</span>
+        <span class="info-inline-label" style="color:#6B7280;margin-left:60px">Status :</span>
+        <span class="tag tag-green">Alive</span>
+        <span class="info-inline-label" style="color:#6B7280;margin-left:60px">SPV Name :</span>
+        <span style="font-size:13px;color:#111827">- 1970.01.01 07:30 live</span>
+      </div>
+      <!-- Row 3 -->
+      <div class="info-row-inline" style="margin-bottom:14px;">
+        <span class="info-inline-label" style="color:#6B7280">Investor :</span>
+        <span style="font-size:13px;color:#9CA3AF">—</span>
+        <span class="info-inline-label" style="color:#6B7280;margin-left:60px">License :</span>
+        <span style="font-size:13px;color:#9CA3AF">—</span>
+        <span class="info-inline-label" style="color:#6B7280;margin-left:60px">Tranche :</span>
+        <span style="font-size:13px;color:#111827">01 1970.01.01 07:30 live</span>
+      </div>
+      <!-- Row 4 -->
+      <div class="info-row-inline">
+        <span class="info-inline-label" style="color:#6B7280">Platform/Agent :</span>
+        <span style="font-size:13px;color:#111827">SeaMoney</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Funder Onboard Setting -->
+  <div class="section-card">
+    <div class="section-hd" onclick="toggleSection('onboard')">
+      <div class="section-hd-left">
+        <span class="chevron" id="chev-onboard">▾</span>
+        Funder Onboard Setting
+      </div>
+      <div onclick="event.stopPropagation()">
+        <button class="btn-initiate" id="onboard-edit-btn" onclick="openAutoModal()">Edit</button>
+      </div>
+    </div>
+    <div class="section-body" id="onboard">
+
+      <!-- 1. Manual Clawback subsection -->
+      <div class="onboard-section">
+        <div class="onboard-sub-title">1. Manual Clawback</div>
+        <div class="config-block">
+          <div class="config-row">
+            <span class="config-key">Clawback Mode :</span>
+            <div class="config-val" id="manual-mode-tags">
+              <span class="tag tag-mode">Mode A: Standard osp + accrued i</span>
+              <span class="tag tag-mode">Mode C: OSP + Custom Effective I</span>
+              <select class="mode-select" id="manual-mode-select" style="display:none;" onchange="onManualModeChange(this.value)">
+                <option value="A">Mode A: Standard osp + accrued i</option>
+                <option value="B">Mode B: Standard osp only</option>
+                <option value="C">Mode C: OSP + Custom Effective I</option>
+              </select>
+            </div>
+          </div>
+          <div class="config-row" id="manual-effective-date-row" style="display:none;">
+            <span class="config-key">Effective Clawback Date :</span>
+            <div class="config-val">
+              <span style="font-size:13px;color:#111827;" id="manual-effective-date-display">—</span>
+              <input type="date" class="mode-date-input" id="manual-effective-date-input" style="display:none;">
+            </div>
+          </div>
+          <div class="config-row" id="onboard-save-row" style="display:none;">
+            <span class="config-key"></span>
+            <div class="config-val" style="gap:8px;">
+              <button class="btn-primary-modal" style="padding:5px 16px;font-size:12px;" onclick="saveOnboardEdit()">Save</button>
+              <button class="btn-cancel-modal" style="padding:5px 16px;font-size:12px;" onclick="cancelOnboardEdit()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Auto Clawback subsection -->
+      <div class="onboard-section">
+        <div class="onboard-sub-title">2. Auto Clawback</div>
+        <div class="config-block" id="auto-config">
+          <div class="config-row">
+            <span class="config-key">Auto Clawback :</span>
+            <div class="config-val">
+              <div class="toggle" id="clawback-toggle" onclick="toggleClawback()"><div class="toggle-knob"></div></div>
+              <span class="toggle-txt" id="toggle-txt">ON</span>
+            </div>
+          </div>
+          <div class="config-row" id="mode-row">
+            <span class="config-key">Auto Clawback Mode :</span>
+            <div class="config-val">
+              <span class="tag tag-mode" id="auto-mode-tag">Mode 1 (Accrued to Restructure Date)</span>
+              <span class="tag tag-mode" id="auto-n-tag" style="display:none;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Funder Fee Config (collapsed) -->
+  <div class="section-card">
+    <div class="section-hd" onclick="toggleSection('fee-config')">
+      <div class="section-hd-left">
+        <span class="chevron collapsed" id="chev-fee-config">▾</span>
+        Funder Fee Config
+      </div>
+    </div>
+    <div class="section-body collapsed" id="fee-config">
+      <p style="color:#9CA3AF;font-size:13px;">No fee config set.</p>
+    </div>
+  </div>
+
+  <!-- Rule List (collapsed) -->
+  <div class="section-card">
+    <div class="section-hd" onclick="toggleSection('rule-list')">
+      <div class="section-hd-left">
+        <span class="chevron collapsed" id="chev-rule-list">▾</span>
+        Rule List
+      </div>
+    </div>
+    <div class="section-body collapsed" id="rule-list">
+      <p style="color:#9CA3AF;font-size:13px;">No rules configured.</p>
+    </div>
+  </div>
+
+  <!-- Traffic Control (collapsed) -->
+  <div class="section-card">
+    <div class="section-hd" onclick="toggleSection('traffic')">
+      <div class="section-hd-left">
+        <span class="chevron collapsed" id="chev-traffic">▾</span>
+        Traffic Control
+      </div>
+    </div>
+    <div class="section-body collapsed" id="traffic">
+      <p style="color:#9CA3AF;font-size:13px;">No traffic control settings.</p>
+    </div>
+  </div>
+
+</div><!-- /page-lender -->
+
+<!-- ═══ PAGE: Clawback ═══ -->
+<div id="page-clawback" class="page-view" style="display:none;">
+  <div class="breadcrumb">
+    <a>Home</a><span class="sep">/</span>
+    <a>Routing Management</a><span class="sep">/</span>
+    <span class="current">Clawback</span>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:0;border-bottom:1px solid #E5E7EB;margin-bottom:16px;background:#fff;border-radius:8px 8px 0 0;padding:0 20px;">
+    <div class="cb-tab" id="tab-new-sys" onclick="switchCbTab('new-sys')" style="padding:12px 20px;font-size:13px;color:#9CA3AF;cursor:pointer;border-bottom:2px solid transparent;">New System</div>
+    <div class="cb-tab" id="tab-abs" onclick="switchCbTab('abs')" style="padding:12px 20px;font-size:13px;color:#2563EB;font-weight:600;cursor:pointer;border-bottom:2px solid #2563EB;">ABS</div>
+  </div>
+
+  <!-- ABS Tab content -->
+  <div id="cb-abs-content">
+    <!-- Action bar -->
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="btn-primary-modal" style="padding:8px 18px;font-size:13px;" onclick="openClawbackModal()">+ Batch Clawback</button>
+    </div>
+
+    <!-- Table -->
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#F9FAFB;">
+            <th style="padding:10px 16px;text-align:left;color:#6B7280;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;">#</th>
+            <th style="padding:10px 16px;text-align:left;color:#6B7280;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;">Loan ID</th>
+            <th style="padding:10px 16px;text-align:left;color:#6B7280;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;">Credit User ID</th>
+            <th style="padding:10px 16px;text-align:left;color:#6B7280;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;">Product</th>
+            <th style="padding:10px 16px;text-align:left;color:#6B7280;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;">Batch ID</th>
+            <th style="padding:10px 16px;text-align:left;color:#6B7280;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;">Match</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-top:1px solid #F3F4F6;">
+            <td style="padding:10px 16px;color:#6B7280;">1</td>
+            <td style="padding:10px 16px;color:#2563EB;cursor:pointer;">2047676357741133872</td>
+            <td style="padding:10px 16px;">1597980483826812</td>
+            <td style="padding:10px 16px;">SPL</td>
+            <td style="padding:10px 16px;color:#374151;">batch_clawback_7641211_2177624930102353921</td>
+            <td style="padding:10px 16px;"><span style="color:#DC2626;font-weight:500;">Fail</span></td>
+          </tr>
+          <tr style="border-top:1px solid #F3F4F6;">
+            <td style="padding:10px 16px;color:#6B7280;">2</td>
+            <td style="padding:10px 16px;color:#2563EB;cursor:pointer;">2118324357509354540</td>
+            <td style="padding:10px 16px;">1554743091078912</td>
+            <td style="padding:10px 16px;">SPL</td>
+            <td style="padding:10px 16px;color:#374151;">batch_clawback_7641211_2177624930102353921</td>
+            <td style="padding:10px 16px;"><span style="color:#DC2626;font-weight:500;">Fail</span></td>
+          </tr>
+          <tr style="border-top:1px solid #F3F4F6;">
+            <td style="padding:10px 16px;color:#6B7280;">3</td>
+            <td style="padding:10px 16px;color:#2563EB;cursor:pointer;">2116501748782852116</td>
+            <td style="padding:10px 16px;">1006165410699112</td>
+            <td style="padding:10px 16px;">SPL</td>
+            <td style="padding:10px 16px;color:#374151;">batch_clawback_7641211_2177624930102353921</td>
+            <td style="padding:10px 16px;"><span style="color:#16A34A;font-weight:500;">Pass</span></td>
+          </tr>
+          <tr style="border-top:1px solid #F3F4F6;">
+            <td style="padding:10px 16px;color:#6B7280;">4</td>
+            <td style="padding:10px 16px;color:#2563EB;cursor:pointer;">2098605546057038861</td>
+            <td style="padding:10px 16px;">1537084380948712</td>
+            <td style="padding:10px 16px;">SPL</td>
+            <td style="padding:10px 16px;color:#374151;">batch_clawback_7641211_2177624930102353921</td>
+            <td style="padding:10px 16px;"><span style="color:#16A34A;font-weight:500;">Pass</span></td>
+          </tr>
+          <tr style="border-top:1px solid #F3F4F6;">
+            <td style="padding:10px 16px;color:#6B7280;">5</td>
+            <td style="padding:10px 16px;color:#2563EB;cursor:pointer;">2095779635469282307</td>
+            <td style="padding:10px 16px;">1722175962055212</td>
+            <td style="padding:10px 16px;">SPL</td>
+            <td style="padding:10px 16px;color:#374151;">batch_clawback_7641211_2177624930102353921</td>
+            <td style="padding:10px 16px;"><span style="color:#DC2626;font-weight:500;">Fail</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- New System Tab content (hidden) -->
+  <div id="cb-newsys-content" style="display:none;">
+    <p style="color:#9CA3AF;font-size:13px;padding:20px 0;">No data.</p>
+  </div>
+</div><!-- /page-clawback -->
+
+<!-- ═══ PAGE: Ticket Detail ═══ -->
+<div id="page-ticket-detail" class="page-view" style="display:none;">
+  <div class="breadcrumb">
+    <a>Home</a><span class="sep">/</span>
+    <a>Ticket Center</a><span class="sep">/</span>
+    <span class="current">Ticket Detail</span>
+  </div>
+
+  <!-- Ticket Info -->
+  <div class="section-card" style="border-radius:8px;">
+    <div class="section-hd" onclick="toggleSection('tkt-info')">
+      <div class="section-hd-left"><span class="chevron" id="chev-tkt-info">▾</span>Ticket Info</div>
+    </div>
+    <div class="section-body" id="tkt-info">
+      <div class="info-grid" style="grid-template-columns:repeat(3,1fr);gap:4px 0;">
+        <div class="info-cell"><div class="info-label">Ticket ID</div><div class="info-val">2022079877549481984</div></div>
+        <div class="info-cell"><div class="info-label">Operation Module</div><div class="info-val">Funder Onboard Setting</div></div>
+        <div class="info-cell"><div class="info-label">Ticket Subject</div><div class="info-val">To update clawback setting for funder TH_BCL_IFC_ABS_01</div></div>
+        <div class="info-cell"><div class="info-label">Ticket Status</div><div class="info-val"><span class="tag" style="background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;">PENDING_APPROVAL</span></div></div>
+        <div class="info-cell"><div class="info-label">Created By</div><div class="info-val">ziqi.xu@monee.com</div></div>
+        <div class="info-cell"><div class="info-label">Create Time</div><div class="info-val">2026-06-22T04:10:11.000Z</div></div>
+        <div class="info-cell"><div class="info-label">Last Update Time</div><div class="info-val">2026-06-22T04:12:52.000Z</div></div>
+        <div class="info-cell"><div class="info-label">Updated By</div><div class="info-val">System</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Stage -->
+  <div class="section-card" style="border-radius:8px;">
+    <div class="section-hd" onclick="toggleSection('tkt-stage')">
+      <div class="section-hd-left"><span class="chevron" id="chev-tkt-stage">▾</span>Ticket Stage</div>
+    </div>
+    <div class="section-body" id="tkt-stage">
+      <div style="display:flex;align-items:center;padding:8px 0;">
+        <!-- Step 1: done -->
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;">✓</div>
+          <span style="font-size:13px;font-weight:600;color:#111827;">Ticket Creation</span>
+        </div>
+        <div style="flex:1;height:2px;background:#2563EB;margin:0 16px;"></div>
+        <!-- Step 2: active -->
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;">2</div>
+          <span style="font-size:13px;font-weight:600;color:#2563EB;">Checking</span>
+        </div>
+        <div style="flex:1;height:2px;background:#E5E7EB;margin:0 16px;"></div>
+        <!-- Step 3: pending -->
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;color:#9CA3AF;font-size:13px;font-weight:700;">3</div>
+          <span style="font-size:13px;color:#9CA3AF;">Complete</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Detail -->
+  <div class="section-card" style="border-radius:8px;">
+    <div class="section-hd" onclick="toggleSection('tkt-detail')">
+      <div class="section-hd-left"><span class="chevron" id="chev-tkt-detail">▾</span>Ticket Detail</div>
+    </div>
+    <div class="section-body" id="tkt-detail">
+
+      <!-- Basic fields -->
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px;">
+        <div style="display:flex;gap:0;">
+          <span style="font-size:13px;color:#6B7280;min-width:200px;">Funder Name :</span>
+          <span style="font-size:13px;color:#111827;">TH_BCL_IFC_ABS_01</span>
+        </div>
+        <div style="display:flex;gap:0;">
+          <span style="font-size:13px;color:#6B7280;min-width:200px;">Clawback Method :</span>
+          <span style="font-size:13px;color:#111827;">ABS Clawback (compulsory)</span>
+        </div>
+        <div style="display:flex;gap:0;">
+          <span style="font-size:13px;color:#6B7280;min-width:200px;">Clawback Start Date :</span>
+          <span style="font-size:13px;color:#111827;">2026-07-01 00:00:00</span>
+        </div>
+        <div style="display:flex;gap:0;">
+          <span style="font-size:13px;color:#6B7280;min-width:200px;">Clawback File :</span>
+          <a href="#" onclick="return false;" style="font-size:13px;color:#2563EB;text-decoration:none;">File</a>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #F3F4F6;margin-bottom:20px;">
+
+      <!-- Manual Clawback change -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:12px;">Manual Clawback</div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-left:12px;">
+          <div style="display:flex;gap:0;">
+            <span style="font-size:13px;color:#6B7280;min-width:188px;">Current Mode(s) :</span>
+            <span class="tag tag-mode" style="margin-right:6px;">Mode A: Standard osp + accrued i</span>
+          </div>
+          <div style="display:flex;gap:0;align-items:center;">
+            <span style="font-size:13px;color:#6B7280;min-width:188px;">Requested Mode(s) :</span>
+            <span class="tag tag-mode" style="margin-right:6px;">Mode A: Standard osp + accrued i</span>
+            <span class="tag tag-mode">Mode C: OSP + Custom Effective I</span>
+          </div>
+          <div style="display:flex;gap:0;">
+            <span style="font-size:13px;color:#6B7280;min-width:188px;">Reason :</span>
+            <span style="font-size:13px;color:#111827;">New batch requires custom effective clawback date</span>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #F3F4F6;margin-bottom:20px;">
+
+      <!-- Auto Clawback change -->
+      <div style="margin-bottom:24px;">
+        <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:12px;">Auto Clawback</div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-left:12px;">
+          <div style="display:flex;gap:0;">
+            <span style="font-size:13px;color:#6B7280;min-width:188px;">Field Changed :</span>
+            <span style="font-size:13px;color:#111827;">Auto Clawback Mode, N input</span>
+          </div>
+          <div style="display:flex;gap:0;align-items:center;">
+            <span style="font-size:13px;color:#6B7280;min-width:188px;">Previous Value :</span>
+            <span class="tag tag-mode" style="margin-right:6px;">Mode 1 (Accrued to Restructure Date)</span>
+          </div>
+          <div style="display:flex;gap:0;align-items:center;">
+            <span style="font-size:13px;color:#6B7280;min-width:188px;">New Value :</span>
+            <span class="tag tag-mode" style="margin-right:6px;">Mode 2 (Accrued to Pre-Completion)</span>
+            <span class="tag tag-mode">N = 3</span>
+          </div>
+          <div style="display:flex;gap:0;">
+            <span style="font-size:13px;color:#6B7280;min-width:188px;">Reason :</span>
+            <span style="font-size:13px;color:#111827;">Align with new restructure policy from IFC</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Changes table -->
+      <div style="border:1px solid #E5E7EB;border-radius:6px;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="background:#F9FAFB;">
+              <th style="padding:10px 16px;text-align:left;color:#374151;font-weight:600;">Changes</th>
+              <th style="padding:10px 16px;text-align:left;color:#374151;font-weight:600;">Current Value</th>
+              <th style="padding:10px 16px;text-align:left;color:#374151;font-weight:600;">To Be Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-top:1px solid #F3F4F6;">
+              <td style="padding:10px 16px;color:#374151;">Manual Clawback Mode</td>
+              <td style="padding:10px 16px;"><span class="tag tag-mode">Mode A</span></td>
+              <td style="padding:10px 16px;">
+                <span class="tag tag-mode" style="margin-right:4px;">Mode A</span>
+                <span class="tag tag-mode">Mode C</span>
+              </td>
+            </tr>
+            <tr style="border-top:1px solid #F3F4F6;">
+              <td style="padding:10px 16px;color:#374151;">Auto Clawback Mode</td>
+              <td style="padding:10px 16px;"><span class="tag tag-mode">Mode 1</span></td>
+              <td style="padding:10px 16px;"><span class="tag tag-mode">Mode 2</span></td>
+            </tr>
+            <tr style="border-top:1px solid #F3F4F6;">
+              <td style="padding:10px 16px;color:#374151;">N input</td>
+              <td style="padding:10px 16px;color:#9CA3AF;">—</td>
+              <td style="padding:10px 16px;"><span class="tag tag-mode">N = 3</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /page-ticket-detail -->
+
+<!-- ═══ PAGE: Batch Clawback Ticket ═══ -->
+<div id="page-ticket-batch" class="page-view" style="display:none;">
+  <div class="breadcrumb">
+    <a>Home</a><span class="sep">/</span>
+    <a>Ticket Center</a><span class="sep">/</span>
+    <span class="current">Ticket Detail</span>
+  </div>
+
+  <!-- Ticket Info -->
+  <div class="section-card" style="border-radius:8px;">
+    <div class="section-hd" onclick="toggleSection('btkt-info')">
+      <div class="section-hd-left"><span class="chevron" id="chev-btkt-info">▾</span>Ticket Info</div>
+    </div>
+    <div class="section-body" id="btkt-info">
+      <div class="info-grid" style="grid-template-columns:repeat(3,1fr);gap:4px 0;">
+        <div class="info-cell"><div class="info-label">Ticket ID</div><div class="info-val">2022079877549481985</div></div>
+        <div class="info-cell"><div class="info-label">Operation Module</div><div class="info-val">Batch Clawback</div></div>
+        <div class="info-cell"><div class="info-label">Ticket Subject</div><div class="info-val">To batch clawback ABS loans for funder: TH_BCL_IFC_ABS_01</div></div>
+        <div class="info-cell"><div class="info-label">Ticket Status</div><div class="info-val"><span class="tag" style="background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;">CHECKING</span></div></div>
+        <div class="info-cell"><div class="info-label">Created By</div><div class="info-val">ziqi.xu@monee.com</div></div>
+        <div class="info-cell"><div class="info-label">Create Time</div><div class="info-val">2026-06-22T04:10:11.000Z</div></div>
+        <div class="info-cell"><div class="info-label">Last Update Time</div><div class="info-val">2026-06-22T04:12:52.000Z</div></div>
+        <div class="info-cell"><div class="info-label">Updated By</div><div class="info-val">System</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Stage -->
+  <div class="section-card" style="border-radius:8px;">
+    <div class="section-hd" onclick="toggleSection('btkt-stage')">
+      <div class="section-hd-left"><span class="chevron" id="chev-btkt-stage">▾</span>Ticket Stage</div>
+    </div>
+    <div class="section-body" id="btkt-stage">
+      <div style="display:flex;align-items:center;padding:8px 0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;">✓</div>
+          <span style="font-size:13px;font-weight:600;color:#111827;">Ticket Creation</span>
+        </div>
+        <div style="flex:1;height:2px;background:#2563EB;margin:0 16px;"></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;">✓</div>
+          <span style="font-size:13px;font-weight:600;color:#2563EB;">Checking</span>
+        </div>
+        <div style="flex:1;height:2px;background:#E5E7EB;margin:0 16px;"></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;color:#9CA3AF;font-size:13px;font-weight:700;">3</div>
+          <span style="font-size:13px;color:#9CA3AF;">Complete</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Detail -->
+  <div class="section-card" style="border-radius:8px;">
+    <div class="section-hd" onclick="toggleSection('btkt-detail')">
+      <div class="section-hd-left"><span class="chevron" id="chev-btkt-detail">▾</span>Ticket Detail</div>
+    </div>
+    <div class="section-body" id="btkt-detail">
+
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;">
+        <div style="display:flex;gap:0;">
+          <span style="font-size:13px;color:#6B7280;min-width:200px;">Clawback Method :</span>
+          <span style="font-size:13px;color:#111827;">ABS Clawback (non-compulsory)</span>
+        </div>
+        <div style="display:flex;gap:0;align-items:center;">
+          <span style="font-size:13px;color:#6B7280;min-width:200px;">Clawback Mode :</span>
+          <span class="tag tag-mode">Mode C: OSP + Custom Effective I</span>
+        </div>
+        <div style="display:flex;gap:0;">
+          <span style="font-size:13px;color:#6B7280;min-width:200px;">Clawback Start Date :</span>
+          <span style="font-size:13px;color:#111827;">2026-06-22 00:00:00</span>
+        </div>
+        <div style="display:flex;gap:0;">
+          <span style="font-size:13px;color:#6B7280;min-width:200px;">Effective Clawback Date :</span>
+          <span style="font-size:13px;color:#111827;">2026-06-22 00:00:00</span>
+        </div>
+        <div style="display:flex;gap:0;">
+          <span style="font-size:13px;color:#6B7280;min-width:200px;">Clawback File :</span>
+          <a href="#" onclick="return false;" style="font-size:13px;color:#2563EB;text-decoration:none;">File</a>
+        </div>
+      </div>
+
+      <!-- Changes table -->
+      <div style="border:1px solid #E5E7EB;border-radius:6px;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="background:#F9FAFB;">
+              <th style="padding:10px 16px;text-align:left;color:#374151;font-weight:600;width:200px;">Changes</th>
+              <th style="padding:10px 16px;text-align:left;color:#374151;font-weight:600;width:120px;">Current Value</th>
+              <th style="padding:10px 16px;text-align:left;color:#374151;font-weight:600;">To Be Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-top:1px solid #F3F4F6;">
+              <td style="padding:14px 16px;color:#374151;vertical-align:top;">ABS Batch Clawback</td>
+              <td style="padding:14px 16px;color:#9CA3AF;vertical-align:top;">—</td>
+              <td style="padding:14px 16px;">
+                <div style="font-size:13px;color:#111827;margin-bottom:6px;">1120 loans will be clawback with total OS: 2306579.73</div>
+                <div style="font-size:12px;color:#DC2626;">The loan count and clawback amount might be subject to changes based on task action time</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /page-ticket-batch -->
+
+</div><!-- /main -->
+
+<!-- Onboard Setting Edit Modal (Manual + Auto) -->
+<div class="modal-overlay" id="auto-clawback-modal">
+  <div class="modal-box" style="width:600px;">
+    <div class="modal-hd">
+      <span class="modal-title">Funder Onboard Setting</span>
+      <button class="modal-close" onclick="closeAutoModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+
+      <!-- Manual Clawback section -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #F3F4F6;">1. Manual Clawback</div>
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:8px;">
+          <span style="font-size:13px;color:#374151;min-width:170px;padding-top:2px;">Clawback Mode :</span>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#374151;">
+              <input type="checkbox" name="manual-mode-modal" value="A" checked style="accent-color:#2563EB;width:15px;height:15px;">
+              Mode A: Standard osp + accrued i
+            </label>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#374151;">
+              <input type="checkbox" name="manual-mode-modal" value="B" style="accent-color:#2563EB;width:15px;height:15px;">
+              Mode B: Standard osp only
+            </label>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#374151;">
+              <input type="checkbox" name="manual-mode-modal" value="C" style="accent-color:#2563EB;width:15px;height:15px;">
+              Mode C: OSP + Custom Effective I
+            </label>
+
+          </div>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #E5E7EB;margin:0 0 20px;">
+
+      <!-- Auto Clawback section -->
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #F3F4F6;">2. Auto Clawback</div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+          <span style="font-size:13px;color:#374151;min-width:170px;">Auto Clawback :</span>
+          <div class="toggle" id="auto-modal-toggle" onclick="toggleAutoModal()"><div class="toggle-knob"></div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;" id="auto-modal-mode-section">
+          <span style="font-size:13px;color:#374151;min-width:170px;">Auto Clawback Mode :</span>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#374151;">
+              <input type="radio" name="auto-mode" value="1" checked onchange="onAutoModeChange(this.value)" style="accent-color:#2563EB;width:15px;height:15px;">
+              Mode 1 (Accrued to Restructure Date)
+            </label>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#374151;">
+              <input type="radio" name="auto-mode" value="2" onchange="onAutoModeChange(this.value)" style="accent-color:#2563EB;width:15px;height:15px;">
+              Mode 2 (Accrued to Pre-Completion)
+            </label>
+          </div>
+        </div>
+        <div style="display:none;align-items:flex-start;gap:16px;" id="auto-modal-n-row">
+          <span style="font-size:13px;color:#374151;min-width:170px;">N input :</span>
+          <div style="flex:1;">
+            <input type="number" min="1" placeholder="Please input" style="width:200px;padding:7px 12px;border:1px solid #D1D5DB;border-radius:5px;font-size:13px;color:#111827;">
+            <div style="font-size:11px;color:#9CA3AF;margin-top:4px;">Only input for Mode 2 (Accrued to Pre-Completion), default N = 1</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel-modal" onclick="resetAutoModal()">Reset</button>
+      <button class="btn-primary-modal" onclick="submitAutoModal()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Initiate Clawback Modal -->
+<div class="modal-overlay" id="clawback-modal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <span class="modal-title">Initiate Clawback</span>
+      <button class="modal-close" onclick="closeClawbackModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Template download -->
+      <p style="font-size:13px;color:#374151;margin-bottom:16px;">
+        <a href="#" onclick="return false;" style="color:#2563EB;text-decoration:none;">Download Clawback Template</a>
+        <span style="color:#374151;"> and import completed file.</span>
+      </p>
+
+      <!-- 1. Clawback Method -->
+      <div class="modal-field">
+        <label class="modal-label"><span class="req">*</span> Clawback Method</label>
+        <div style="display:flex;gap:24px;padding:4px 0;">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#374151;">
+            <input type="radio" name="clawback-method" value="compulsory" checked style="accent-color:#2563EB;width:15px;height:15px;">
+            Compulsory
+          </label>
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#374151;">
+            <input type="radio" name="clawback-method" value="non-compulsory" style="accent-color:#2563EB;width:15px;height:15px;">
+            Non-compulsory
+          </label>
+        </div>
+      </div>
+
+      <!-- 2. Product Type -->
+      <div class="modal-field">
+        <label class="modal-label"><span class="req">*</span> Please select product type</label>
+        <select class="modal-select">
+          <option value="">Please select product type</option>
+          <option value="SPL" selected>SPL</option>
+          <option>BCL</option>
+          <option>BNPL</option>
+        </select>
+      </div>
+
+      <!-- 3. Src Funder ID -->
+      <div class="modal-field">
+        <label class="modal-label"><span class="req">*</span> Please select src funder id</label>
+        <select class="modal-select">
+          <option value="">Please select src funder id</option>
+          <option value="7641062">7641062 — TH_BCL_IFC_ABS_01</option>
+          <option value="7641063">7641063 — TH_SPL_KTB_01</option>
+        </select>
+      </div>
+
+      <!-- 4. Clawback Mode (manual only) -->
+      <div class="modal-field">
+        <label class="modal-label"><span class="req">*</span> Please select the clawback mode</label>
+        <select class="modal-select" id="batch-mode-select" onchange="onBatchModeChange(this.value)">
+          <option value="">Please select clawback mode</option>
+          <option value="A">Mode A: Standard osp + accrued i</option>
+          <option value="B">Mode B: Standard osp only</option>
+          <option value="C">Mode C: OSP + Custom Effective I</option>
+        </select>
+        <div id="mode-error-inline" style="display:none;margin-top:6px;padding:8px 12px;background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;font-size:12px;color:#DC2626;display:none;align-items:center;gap:6px;">
+          <span>⚠</span> This clawback mode is not supported by funder TH_BCL_IFC_ABS_01. Supported: Mode A, Mode B.
+        </div>
+      </div>
+
+      <!-- 5. Clawback Start Date -->
+      <div class="modal-field">
+        <label class="modal-label"><span class="req">*</span> Clawback Start Date</label>
+        <input type="date" class="modal-date">
+      </div>
+
+      <!-- 6. Effective Clawback Date (Mode C only) -->
+      <div class="modal-field" id="batch-effective-date-field" style="display:none;">
+        <label class="modal-label"><span class="req">*</span> Effective Clawback Date</label>
+        <input type="date" class="modal-date">
+      </div>
+
+      <!-- File Upload -->
+      <div class="modal-field">
+        <div class="modal-upload-area" onclick="document.getElementById('file-input').click()">
+          <span style="font-size:20px;">⬆</span>
+          <div>
+            <div style="font-size:13px;color:#374151;font-weight:500;">Upload</div>
+            <div class="modal-upload-hint">Supports .xlsx, .csv</div>
+          </div>
+        </div>
+        <input type="file" id="file-input" style="display:none;" accept=".xlsx,.csv" onchange="handleFileUpload(this)">
+        <div class="uploaded-file" id="uploaded-file">
+          <span>✓</span>
+          <span id="uploaded-filename"></span>
+          <span style="margin-left:auto;cursor:pointer;color:#6B7280;" onclick="clearUpload()">✕</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel-modal" onclick="closeClawbackModal()">Cancel</button>
+      <button class="btn-primary-modal" onclick="submitClawback()">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSection(id) {
+  const body = document.getElementById(id);
+  const chev = document.getElementById('chev-' + id);
+  body.classList.toggle('collapsed');
+  chev.classList.toggle('collapsed');
+}
+
+function toggleNav(id) {
+  const sub = document.getElementById('sub-' + id);
+  const arr = document.getElementById('arr-' + id);
+  if (!sub) return;
+  sub.classList.toggle('open');
+  arr.style.transform = sub.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function onManualModeChange(val) {
+  const row = document.getElementById('manual-effective-date-row');
+  if (val === 'C') {
+    row.style.display = 'flex';
+    document.getElementById('manual-effective-date-display').style.display = 'none';
+    document.getElementById('manual-effective-date-input').style.display = '';
+  } else {
+    row.style.display = 'none';
+  }
+}
+
+let _savedMode = 'A';
+let _savedDate = '';
+
+function toggleOnboardEdit() {
+  document.getElementById('manual-mode-display').style.display = 'none';
+  document.getElementById('manual-edit-icon').style.display = 'none';
+  document.getElementById('manual-mode-select').style.display = '';
+  document.getElementById('onboard-save-row').style.display = 'flex';
+  document.getElementById('onboard-edit-btn').style.display = 'none';
+  // sync select to current display
+  const cur = document.getElementById('manual-mode-display').textContent;
+  const sel = document.getElementById('manual-mode-select');
+  if (cur.startsWith('Mode B')) sel.value = 'B';
+  else if (cur.startsWith('Mode C')) sel.value = 'C';
+  else sel.value = 'A';
+  onManualModeChange(sel.value);
+}
+
+function saveOnboardEdit() {
+  const sel = document.getElementById('manual-mode-select');
+  const labels = { A: 'Mode A: Standard osp + accrued i', B: 'Mode B: Standard osp only', C: 'Mode C: OSP + Custom Effective I' };
+  document.getElementById('manual-mode-display').textContent = labels[sel.value];
+  _savedMode = sel.value;
+  if (sel.value === 'C') {
+    const d = document.getElementById('manual-effective-date-input').value;
+    _savedDate = d;
+    document.getElementById('manual-effective-date-display').textContent = d || '—';
+    document.getElementById('manual-effective-date-display').style.display = '';
+    document.getElementById('manual-effective-date-input').style.display = 'none';
+    document.getElementById('manual-effective-date-row').style.display = 'flex';
+  } else {
+    document.getElementById('manual-effective-date-row').style.display = 'none';
+  }
+  exitOnboardEdit();
+  toast('Saved');
+}
+
+function cancelOnboardEdit() {
+  const labels = { A: 'Mode A: Standard osp + accrued i', B: 'Mode B: Standard osp only', C: 'Mode C: OSP + Custom Effective I' };
+  document.getElementById('manual-mode-select').value = _savedMode;
+  if (_savedMode === 'C') {
+    document.getElementById('manual-effective-date-row').style.display = 'flex';
+    document.getElementById('manual-effective-date-display').style.display = '';
+    document.getElementById('manual-effective-date-input').style.display = 'none';
+  } else {
+    document.getElementById('manual-effective-date-row').style.display = 'none';
+  }
+  exitOnboardEdit();
+}
+
+function exitOnboardEdit() {
+  document.getElementById('manual-mode-display').style.display = '';
+  document.getElementById('manual-edit-icon').style.display = '';
+  document.getElementById('manual-mode-select').style.display = 'none';
+  document.getElementById('onboard-save-row').style.display = 'none';
+  document.getElementById('onboard-edit-btn').style.display = '';
+}
+
+function openAutoModal() {
+  document.getElementById('auto-clawback-modal').classList.add('open');
+  // sync toggle state from page
+  const isOn = !document.getElementById('clawback-toggle').classList.contains('off');
+  const tog = document.getElementById('auto-modal-toggle');
+  if (isOn) tog.classList.remove('off'); else tog.classList.add('off');
+  document.getElementById('auto-modal-mode-section').style.display = isOn ? 'flex' : 'none';
+  document.getElementById('auto-modal-n-row').style.display = 'none';
+}
+function closeAutoModal() {
+  document.getElementById('auto-clawback-modal').classList.remove('open');
+}
+function toggleAutoModal() {
+  const tog = document.getElementById('auto-modal-toggle');
+  tog.classList.toggle('off');
+  const isOn = !tog.classList.contains('off');
+  document.getElementById('auto-modal-mode-section').style.display = isOn ? 'flex' : 'none';
+  document.getElementById('auto-modal-n-row').style.display = 'none';
+}
+function onAutoModeChange(val) {
+  document.getElementById('auto-modal-n-row').style.display = val === '2' ? 'flex' : 'none';
+}
+function resetAutoModal() {
+  document.querySelectorAll('input[name="auto-mode"]')[0].checked = true;
+  document.getElementById('auto-modal-n-row').style.display = 'none';
+  const tog = document.getElementById('auto-modal-toggle');
+  tog.classList.remove('off');
+  document.getElementById('auto-modal-mode-section').style.display = 'flex';
+}
+function submitAutoModal() {
+  const modeLabels = {
+    A: 'Mode A: Standard osp + accrued i',
+    B: 'Mode B: Standard osp only',
+    C: 'Mode C: OSP + Custom Effective I'
+  };
+
+  // Sync Manual Clawback mode tags
+  const checkedModes = Array.from(document.querySelectorAll('input[name="manual-mode-modal"]:checked')).map(i => i.value);
+  const tagsContainer = document.getElementById('manual-mode-tags');
+  // Remove old tags (keep select element)
+  tagsContainer.querySelectorAll('.tag-mode').forEach(t => t.remove());
+  checkedModes.forEach(m => {
+    const span = document.createElement('span');
+    span.className = 'tag tag-mode';
+    span.textContent = modeLabels[m];
+    tagsContainer.insertBefore(span, tagsContainer.querySelector('select'));
+  });
+
+  // Sync Auto Clawback
+  const isOn = !document.getElementById('auto-modal-toggle').classList.contains('off');
+  const tog = document.getElementById('clawback-toggle');
+  const txt = document.getElementById('toggle-txt');
+  const modeRow = document.getElementById('mode-row');
+  if (isOn) { tog.classList.remove('off'); txt.textContent='ON'; txt.style.color='#2563EB'; modeRow.style.display='flex'; }
+  else { tog.classList.add('off'); txt.textContent='OFF'; txt.style.color='#9CA3AF'; modeRow.style.display='none'; }
+
+  const autoModeVal = document.querySelector('input[name="auto-mode"]:checked').value;
+  document.getElementById('auto-mode-tag').textContent = autoModeVal === '1'
+    ? 'Mode 1 (Accrued to Restructure Date)'
+    : 'Mode 2 (Accrued to Pre-Completion)';
+
+  // Show N value tag if Mode 2
+  const nInput = document.querySelector('#auto-modal-n-row input');
+  const nTag = document.getElementById('auto-n-tag');
+  if (autoModeVal === '2' && nInput && nInput.value) {
+    nTag.textContent = 'N = ' + nInput.value;
+    nTag.style.display = '';
+  } else if (autoModeVal === '2') {
+    nTag.textContent = 'N = 1 (default)';
+    nTag.style.display = '';
+  } else {
+    nTag.style.display = 'none';
+  }
+
+  closeAutoModal();
+  toast('Onboard settings saved');
+}
+
+// Funder's supported manual modes (from Lender Detail config)
+const FUNDER_SUPPORTED_MODES = ['A', 'B']; // Mode A + Mode B (as configured)
+
+function onBatchModeChange(val) {
+  document.getElementById('batch-effective-date-field').style.display = val === 'C' ? 'block' : 'none';
+  const errDiv = document.getElementById('mode-error-inline');
+  const sel = document.getElementById('batch-mode-select');
+  if (val && !FUNDER_SUPPORTED_MODES.includes(val)) {
+    errDiv.style.display = 'flex';
+    sel.style.borderColor = '#DC2626';
+    sel.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.15)';
+  } else {
+    errDiv.style.display = 'none';
+    sel.style.borderColor = '';
+    sel.style.boxShadow = '';
+  }
+}
+
+function showErrorToast(msg) {
+  const t = document.getElementById('toast-error-msg');
+  t.innerHTML = '⚠&nbsp;&nbsp;' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function openClawbackModal() {
+  document.getElementById('clawback-modal').classList.add('open');
+}
+function closeClawbackModal() {
+  document.getElementById('clawback-modal').classList.remove('open');
+}
+function handleFileUpload(input) {
+  if (input.files && input.files[0]) {
+    document.getElementById('uploaded-filename').textContent = input.files[0].name;
+    document.getElementById('uploaded-file').style.display = 'flex';
+  }
+}
+function clearUpload() {
+  document.getElementById('file-input').value = '';
+  document.getElementById('uploaded-file').style.display = 'none';
+}
+function submitClawback() {
+  closeClawbackModal();
+  toast('Clawback initiated successfully');
+}
+
+function toggleClawback() {
+  const tog = document.getElementById('clawback-toggle');
+  const txt = document.getElementById('toggle-txt');
+  const modeRow = document.getElementById('mode-row');
+  tog.classList.toggle('off');
+  const isOn = !tog.classList.contains('off');
+  txt.textContent = isOn ? 'ON' : 'OFF';
+  txt.style.color = isOn ? '#2563EB' : '#9CA3AF';
+  modeRow.style.display = isOn ? 'flex' : 'none';
+}
+
+function showPage(page) {
+  document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
+  document.getElementById('page-' + page).style.display = 'block';
+  // update sidebar active state
+  document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
+  if (page === 'clawback') {
+    document.getElementById('nav-clawback').classList.add('active');
+  } else if (page === 'ticket-detail') {
+    document.getElementById('nav-ticket-detail').classList.add('active');
+  } else if (page === 'ticket-batch') {
+    document.getElementById('nav-ticket-batch').classList.add('active');
+  }
+  window.scrollTo(0, 0);
+}
+
+function switchCbTab(tab) {
+  document.getElementById('cb-abs-content').style.display = tab === 'abs' ? 'block' : 'none';
+  document.getElementById('cb-newsys-content').style.display = tab === 'new-sys' ? 'block' : 'none';
+  document.getElementById('tab-abs').style.color = tab === 'abs' ? '#2563EB' : '#9CA3AF';
+  document.getElementById('tab-abs').style.fontWeight = tab === 'abs' ? '600' : '400';
+  document.getElementById('tab-abs').style.borderBottom = tab === 'abs' ? '2px solid #2563EB' : '2px solid transparent';
+  document.getElementById('tab-new-sys').style.color = tab === 'new-sys' ? '#2563EB' : '#9CA3AF';
+  document.getElementById('tab-new-sys').style.fontWeight = tab === 'new-sys' ? '600' : '400';
+  document.getElementById('tab-new-sys').style.borderBottom = tab === 'new-sys' ? '2px solid #2563EB' : '2px solid transparent';
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>
